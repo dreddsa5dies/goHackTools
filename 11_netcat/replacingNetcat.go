@@ -1,54 +1,99 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 )
 
-var (
-	// define some global variables
-	listen            bool
-	command           bool
-	upload            = false
-	execute           string
-	target            string
-	uploadDestination string
-	port              int
-)
-
-func init() {
-	flag.BoolVar(&listen, "l", false, "Listen on [host]:[port] for incoming connections")
-	flag.BoolVar(&command, "c", false, "Initialize a command shell")
-
-	flag.StringVar(&execute, "e", "", "Execute the given file upon receiving a connection")
-	flag.StringVar(&target, "t", "", "Target")
-	flag.StringVar(&uploadDestination, "u", "", "Upon receiving connection upload a file and write to [destination]")
-
-	flag.IntVar(&port, "p", 0, "Port")
+func showLocalAddrs() {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		panic(err)
+	}
+	for _, addr := range addrs {
+		fmt.Println(addr.String())
+	}
 }
 
-func main() {
-	flag.Parse()
+// Listen port
+func Listen(port int) error {
+	lis, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		return err
+	}
+	defer lis.Close()
+	for {
+		conn, err := lis.Accept()
+		if err != nil {
+			log.Println("Accept error:", err)
+		}
+		log.Println("accept:", conn.RemoteAddr())
 
-	if !listen && len(target) > 0 && port > 0 {
-		// read in the buffer from the commandline
-		// this will block, so send CTRL-D if not sending input
-		// to stdin
+		go func(c net.Conn) {
+			io.Copy(os.Stdout, c)
+			log.Println("closed:", conn.RemoteAddr())
+			defer c.Close()
+		}(conn)
+	}
+}
+
+// Dial port
+func Dial(host string, port int) error {
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	fi, _ := os.Stdin.Stat()
+
+	if (fi.Mode() & os.ModeCharDevice) == 0 {
+		// для получения текста через | (пайп)
 		buffer, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		// send data off
-		clientSender(buffer)
+		_, err = io.Copy(conn, bytes.NewReader(buffer))
+	} else {
+		_, err = io.Copy(conn, os.Stdin)
 	}
 
-	// we are going to listen and potentially
-	// upload things, execute commands, and drop a shell back
-	// depending on our command line options above
-	if listen {
-		serverLoop()
+	return err
+}
+
+func main() {
+	port := flag.Int("p", 0, "local port number")
+
+	flag.Usage = func() {
+		fmt.Println(strings.Replace(
+			`connect:	$name HOSTNAME PORT
+listen:		$name -p PORT
+	-p	listen port number`,
+			"$name", filepath.Base(os.Args[0]), -1))
 	}
+
+	flag.Parse()
+
+	if *port > 0 {
+		log.Fatal(Listen(*port))
+	}
+
+	if flag.NArg() != 2 {
+		flag.Usage()
+		return
+	}
+
+	dialPort := 0
+	fmt.Sscanf(flag.Arg(1), "%d", &dialPort)
+	Dial(flag.Arg(0), dialPort)
 }
