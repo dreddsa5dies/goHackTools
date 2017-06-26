@@ -3,7 +3,11 @@
 ![IMAGE](img/goHackTools.png)
 
 ## Hacker tools on Go (Golang)  
-We used examples from the book "Violent Python" TJ O'Connor
+We used examples from the book "Violent Python" TJ O'Connor  
+
+## TODO:
+examples from the book "Black Hat Python" Python Programming for Hackers and Pentesters by Justin Seitz  
+examples from the book "Black Hat Go" Go Programming For Hackers and Pentesters by Tom Steele, Chris Patten, and Dan Kottmann  
 
 ## The code contains comments in Russian
 
