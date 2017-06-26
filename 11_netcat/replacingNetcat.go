@@ -57,7 +57,7 @@ func Dial(host string, port int) error {
 	fi, _ := os.Stdin.Stat()
 
 	if (fi.Mode() & os.ModeCharDevice) == 0 {
-		// для получения текста через | (пайп)
+		// To retrieve text through | (pipe)
 		buffer, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatalln(err)
