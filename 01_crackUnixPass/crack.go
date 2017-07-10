@@ -23,7 +23,7 @@ func main() {
 	defer passFile.Close()
 
 	// парольный словарь
-	dictFile, err := ioutil.ReadFile("dict.txt")
+	dictFile, err := ioutil.ReadFile("../00_addMaterials/dict.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}

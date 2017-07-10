@@ -36,6 +36,7 @@ func main() {
 	}
 
 	// парольный словарь
+	// ../00_addMaterials/dict.txt
 	dictFile, err := os.Open(dictionary)
 	if err != nil {
 		log.Fatalln(err)
