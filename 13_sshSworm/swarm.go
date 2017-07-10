@@ -10,8 +10,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	fastping "github.com/tatsushid/go-fastping"
 )
 
 func main() {
@@ -19,45 +17,12 @@ func main() {
 	netIP := myNet()
 
 	// поиск хостов
-	// TODO: без fastpinga надо делать
 	allHosts := searchHosts(netIP)
-	println(allHosts)
+	for _, hostScan := range allHosts {
+		println(hostScan)
+	}
 
 	// сканирование
-	for _, host := range allHosts {
-
-		wg := sync.WaitGroup{}
-
-		c := func(ports int) {
-			conn, err := net.DialTimeout("tcp", host+":"+strconv.Itoa(ports), time.Duration(1)*time.Second)
-			if err == nil {
-				// отправка текста
-				fmt.Fprintf(conn, "HELLO\r\n")
-
-				buf := make([]byte, 0, 4096) // big buffer
-				tmp := make([]byte, 256)     // using small tmo buffer for demonstrating
-				for {
-					n, err := conn.Read(tmp)
-					if err != nil {
-						if err != io.EOF {
-							fmt.Println("read error:", err)
-						}
-						break
-					}
-					buf = append(buf, tmp[:n]...)
-				}
-				conn.Close()
-				fmt.Println(ports, " open")
-			}
-			wg.Done()
-		}
-
-		wg.Add(65534)
-		for i := 0; i < 65534; i++ {
-			go c(i)
-		}
-		wg.Wait()
-	}
 
 	// подбор пароля
 
@@ -80,7 +45,10 @@ func myNet() []string {
 				addr := net.ParseIP(ipnet.IP.String())
 				mask := addr.DefaultMask()
 				network := addr.Mask(mask)
-				result = append(result, network.String())
+				// docker network - not scan
+				if !strings.Contains(network.String(), "172.17.0") {
+					result = append(result, network.String())
+				}
 			}
 		}
 	}
@@ -88,48 +56,45 @@ func myNet() []string {
 	return result
 }
 
-// определение доступности хоста
-func pingTarget(ipTarget string) bool {
-	p := fastping.NewPinger()
-
-	err := p.AddIP(ipTarget)
-	if err != nil {
-		log.Println(err)
-	}
-
-	target := false
-
-	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-		target = true
-	}
-
-	err = p.Run()
-	if err != nil {
-		log.Println(err)
-	}
-
-	return target
-}
-
 // поиск хостов
 func searchHosts(netIP []string) []string {
 	allHosts := make([]string, 0)
 
-	for _, a := range netIP {
-		addressHosts := strings.TrimRight(a, "0")
+	for _, host := range netIP {
+		host = strings.TrimRight(host, "0")
 
 		wg := sync.WaitGroup{}
 
-		p := func(hostPing string) {
-			if pingTarget(hostPing) {
-				allHosts = append(allHosts, hostPing)
-				wg.Done()
+		c := func(addr int) {
+			conn, err := net.DialTimeout("tcp", host+strconv.Itoa(addr)+":"+"22", time.Duration(1)*time.Second)
+			if err == nil {
+				// отправка текста
+				fmt.Fprintf(conn, "HELLO\r\n")
+
+				buf := make([]byte, 0, 4096) // big buffer
+				tmp := make([]byte, 256)     // using small tmo buffer for demonstrating
+				for {
+					n, err := conn.Read(tmp)
+					if err != nil {
+						if err != io.EOF {
+							fmt.Println("read error:", err)
+						}
+						break
+					}
+					buf = append(buf, tmp[:n]...)
+				}
+				conn.Close()
+				log.Println(host+strconv.Itoa(addr)+":"+"22", " open")
+				// TODO
+				// параллельную запись распедалить
+				allHosts = append(allHosts, host+strconv.Itoa(addr))
 			}
+			wg.Done()
 		}
 
-		wg.Add(253)
+		wg.Add(255)
 		for i := 1; i < 254; i++ {
-			go p(addressHosts + strconv.Itoa(i))
+			go c(i)
 		}
 		wg.Wait()
 	}
