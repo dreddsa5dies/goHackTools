@@ -8,21 +8,21 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
 func main() {
 	// какая подсеть
 	netIP := myNet()
-
-	// поиск хостов
-	allHosts := searchHosts(netIP)
-	for _, hostScan := range allHosts {
-		println(hostScan)
+	for _, ip := range netIP {
+		log.Println("найдена подсеть ", ip)
 	}
 
-	// сканирование
+	// поиск хостов
+	allHost := searchHosts(netIP)
+	for _, ssh := range allHost {
+		log.Println("доступны по ssh ", ssh)
+	}
 
 	// подбор пароля
 
@@ -63,14 +63,11 @@ func searchHosts(netIP []string) []string {
 	for _, host := range netIP {
 		host = strings.TrimRight(host, "0")
 
-		wg := sync.WaitGroup{}
-
-		c := func(addr int) {
-			conn, err := net.DialTimeout("tcp", host+strconv.Itoa(addr)+":"+"22", time.Duration(1)*time.Second)
+		for i := 1; i < 254; i++ {
+			conn, err := net.DialTimeout("tcp", host+strconv.Itoa(i)+":"+"22", time.Duration(1)*time.Millisecond)
 			if err == nil {
 				// отправка текста
 				fmt.Fprintf(conn, "HELLO\r\n")
-
 				buf := make([]byte, 0, 4096) // big buffer
 				tmp := make([]byte, 256)     // using small tmo buffer for demonstrating
 				for {
@@ -84,20 +81,11 @@ func searchHosts(netIP []string) []string {
 					buf = append(buf, tmp[:n]...)
 				}
 				conn.Close()
-				log.Println(host+strconv.Itoa(addr)+":"+"22", " open")
-				// TODO
-				// параллельную запись распедалить
-				allHosts = append(allHosts, host+strconv.Itoa(addr))
+				allHosts = append(allHosts, host+strconv.Itoa(i))
+			} else {
+				continue
 			}
-			wg.Done()
 		}
-
-		wg.Add(255)
-		for i := 1; i < 254; i++ {
-			go c(i)
-		}
-		wg.Wait()
 	}
-
 	return allHosts
 }
