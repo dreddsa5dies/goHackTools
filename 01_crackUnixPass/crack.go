@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io/ioutil"
 
@@ -14,16 +15,35 @@ import (
 	crypt "github.com/amoghe/go-crypt"
 )
 
+var (
+	passfile   string
+	dictionary string
+)
+
+func init() {
+	flag.StringVar(&passfile, "f", "", "Open shadow")
+	flag.StringVar(&dictionary, "d", "", "Open pass dictionary")
+}
+
 func main() {
+	// разбор флагов
+	flag.Parse()
+
+	// вывод справки
+	if passfile == "" || dictionary == "" {
+		println("Please " + os.Args[0] + " -h")
+		os.Exit(0)
+	}
+
 	// открываем shadow
-	passFile, err := os.Open("pass")
+	passFile, err := os.Open(passfile)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer passFile.Close()
 
 	// парольный словарь
-	dictFile, err := ioutil.ReadFile("../00_addMaterials/dict.txt")
+	dictFile, err := ioutil.ReadFile(dictionary)
 	if err != nil {
 		log.Fatalln(err)
 	}

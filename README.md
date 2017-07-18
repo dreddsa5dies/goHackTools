@@ -9,6 +9,19 @@ We used examples from the book "Violent Python" TJ O'Connor
 examples from the book "Black Hat Python" Python Programming for Hackers and Pentesters by Justin Seitz  
 examples from the book "Black Hat Go" Go Programming For Hackers and Pentesters by Tom Steele, Chris Patten, and Dan Kottmann  
 
+## Package used
+```bash
+go get -v github.com/alexmullins/zip
+go get -v github.com/amoghe/go-crypt
+go get -v github.com/shavac/gexpect
+go get -v github.com/mattn/go-sqlite3
+go get -v rsc.io/pdf
+go get -v github.com/oschwald/geoip2-golang
+go get -v github.com/google/gopacket
+sudo apt-get install libpcap-dev 
+go get -v golang.org/x/crypto/ssh
+```
+
 ## The code contains comments in Russian
 
 ## License

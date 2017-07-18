@@ -74,7 +74,7 @@ func recKml(ip string) (string, error) {
 		return "", errors.New("Not IP")
 	}
 
-	absPath, _ := filepath.Abs("../08_geoIp/GeoLite2-City.mmdb")
+	absPath, _ := filepath.Abs("GeoLite2-City.mmdb")
 	db, err := geoip2.Open(absPath)
 	if err != nil {
 		return "", err

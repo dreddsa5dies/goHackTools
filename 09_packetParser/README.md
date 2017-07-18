@@ -8,4 +8,4 @@ http://www.devdungeon.com/content/packet-capture-injection-and-analysis-gopacket
 
 go build  
 
-Нужны права SUDO  
+Need SUDO  

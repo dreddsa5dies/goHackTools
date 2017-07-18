@@ -22,7 +22,7 @@ func printRecord(tgt string) {
 		log.Fatalln("Error IP")
 	}
 
-	absPath, _ := filepath.Abs("../00_addMaterials/GeoLite2-City.mmdb")
+	absPath, _ := filepath.Abs("GeoLite2-City.mmdb")
 	db, err := geoip2.Open(absPath)
 	if err != nil {
 		log.Fatal(err)
