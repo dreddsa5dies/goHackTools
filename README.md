@@ -11,15 +11,8 @@ examples from the book "Black Hat Go" Go Programming For Hackers and Pentesters 
 
 ## Package used
 ```bash
-go get -v github.com/alexmullins/zip
-go get -v github.com/amoghe/go-crypt
-go get -v github.com/shavac/gexpect
-go get -v github.com/mattn/go-sqlite3
-go get -v rsc.io/pdf
-go get -v github.com/oschwald/geoip2-golang
-go get -v github.com/google/gopacket
+go get -v -u github.com/alexmullins/zip github.com/amoghe/go-crypt github.com/shavac/gexpect github.com/mattn/go-sqlite3 rsc.io/pdf github.com/oschwald/geoip2-golang github.com/google/gopacket golang.org/x/crypto/ssh
 sudo apt-get install libpcap-dev 
-go get -v golang.org/x/crypto/ssh
 ```
 
 ## The code contains comments in Russian
