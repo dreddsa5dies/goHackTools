@@ -22,6 +22,8 @@ func main() {
 				fmt.Fprintf(os.Stderr, "file: %v\n", err)
 				continue
 			}
+			defer f.Close()
+
 			_, kind, err := image.Decode(f)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%v: %v\n", f.Name(), err)
