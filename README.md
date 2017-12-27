@@ -21,4 +21,4 @@ sudo apt-get install libpcap-dev
 This project is licensed under MIT license. Please read the LICENSE file.
 
 ## Contribute
-Welcomes any kind of contribution. Please read the CODE_OF_CONDUCT file.
+Welcomes any kind of contribution. Please read the CONTRIBUTING and CODE_OF_CONDUCT file.
