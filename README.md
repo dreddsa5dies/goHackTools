@@ -3,7 +3,7 @@
 ![IMAGE](img/goHackTools.png)
 
 ## Hacker tools on Go (Golang)  
-We used examples from the book "Violent Python" TJ O'Connor  
+We used examples from the books "Violent Python" TJ O'Connor, "Black Hat Python" Python Programming for Hackers and Pentesters by Justin Seitz and see [asecuritysite](https://asecuritysite.com/) 
 
 ## TODO:
 examples from the book "Black Hat Python" Python Programming for Hackers and Pentesters by Justin Seitz  
@@ -21,9 +21,4 @@ sudo apt-get install libpcap-dev
 This project is licensed under MIT license. Please read the LICENSE file.
 
 ## Contribute
-Welcomes any kind of contribution, please follow the next steps:
-
-- Fork the project on github.com.
-- Create a new branch.
-- Commit changes to the new branch.
-- Send a pull request.
+Welcomes any kind of contribution. Please read the CODE_OF_CONDUCT file.
