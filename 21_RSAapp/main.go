@@ -12,26 +12,45 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
+
+	"github.com/jessevdk/go-flags"
 )
 
-func main() {
-	if len(os.Args) == 1 || len(os.Args) > 3 {
-		fmt.Printf("Use: %v pass data_string\n", os.Args[0])
-		os.Exit(1)
-	} else {
-		log.Println("Starting the application...")
-		ciphertext := encrypt([]byte(os.Args[2]), os.Args[1])
-		log.Printf("Encrypted: %x\n", ciphertext)
-
-		plaintext := decrypt(ciphertext, os.Args[1])
-		log.Printf("Decrypted: %s\n", plaintext)
-
-		encryptFile("encrypt.txt", []byte(os.Args[2]), os.Args[1])
-		log.Println(string(decryptFile("encrypt.txt", os.Args[1])))
-		os.Exit(0)
-	}
+var opts struct {
+	Data     string `short:"d" long:"data" default:"" description:"Data for encrypt"`
+	Password string `short:"p" long:"pass" default:"" description:"Password"`
+	FileName string `short:"f" long:"filename" default:"encrypt.txt" description:"Save|Open filename"`
+	// Open     bool   `short:"o" long:"open" default:"false" description:"Open filename"`
 }
 
+func main() {
+	flags.Parse(&opts)
+
+	if len(os.Args) == 1 {
+		fmt.Fprintf(os.Stdout, "Usage:\t%v -h\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	if opts.Data != "" {
+		regStr, _ := regexp.Compile(`([0-9a-zA-Z]){8,}`)
+		if regStr.MatchString(opts.Password) {
+			log.Println("Pass ok")
+			encryptFile(opts.FileName, []byte(opts.Data), opts.Password)
+			log.Println("Encrypt ok")
+		} else {
+			fmt.Fprintf(os.Stdout, "Bad password\n")
+			fmt.Fprintf(os.Stdout, "Use good password\n")
+			os.Exit(1)
+		}
+	} else if opts.Password != "" {
+		fmt.Fprintf(os.Stdout, "Decrypt:\n%v\n", string(decryptFile(opts.FileName, opts.Password)))
+	}
+
+	os.Exit(0)
+}
+
+// Hashing Passwords to Compatible Cipher Keys
 func createHash(key string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(key))
@@ -70,7 +89,7 @@ func decrypt(data []byte, passphrase string) []byte {
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "DecryptFunc gcm.Open: %v\n", err)
+		fmt.Fprintf(os.Stderr, "PASSWORD FAIL\n%v\n", err)
 		os.Exit(1)
 	}
 	return plaintext
