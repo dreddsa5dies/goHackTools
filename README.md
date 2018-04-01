@@ -1,6 +1,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/dreddsa5dies/goHackTools)](https://goreportcard.com/report/github.com/dreddsa5dies/goHackTools) ![License](https://img.shields.io/badge/License-MIT-blue.svg)  
 
-![IMAGE](img/goHackTools.png)
+![IMAGE](img/goHackTools.png)  
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/GDNsM0F)
 
 ## Hacker tools on Go (Golang)  
 I used examples from the books "Violent Python" TJ O'Connor, "Black Hat Python" Python Programming for Hackers and Pentesters by Justin Seitz and [asecuritysite](https://asecuritysite.com/) 
