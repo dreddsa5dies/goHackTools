@@ -1,0 +1,116 @@
+@font-face {
+    font-family: "Consolas";
+    src: url("fonts/Consolas.ttf");
+}
+@font-face {
+    font-family: "Montserrat";
+    src: url("fonts/Montserrat-Regular.otf");
+}
+@font-face {
+    font-family: "Montserrat";
+    src: url("fonts/Montserrat-Bold.otf");
+    font-weight: 700;
+}
+@font-face {
+    font-family: "ProximaNova";
+    src: url("fonts/ProximaNovaRegular.otf");
+}
+@font-face {
+    font-family: "ProximaNova-Bold";
+    src: url("fonts/ProximaNovaBold.otf");
+}
+
+body {
+    font-family: "ProximaNova";
+    color: #111;
+    font-size: 100%;
+    width: 100%;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.wrapper {
+    position: absolute;
+    width: 100%;
+    min-height: 100%;
+    height: 100%;
+    display: table;
+}
+
+.content {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.inner {
+    margin: 0 auto;
+    width: 50em;
+}
+
+#name {
+    font-size: 5.000em;
+    color: #111;
+    font-family: "Montserrat";
+    text-align: center;
+    letter-spacing: 10;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+ul {
+    text-align: center;
+    margin-top: 1em;
+    width: 37.500em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+li {
+    font-family: "Montserrat";
+    list-style-type: none;
+    color: #999;
+    font-size: 3.875em;
+    float: center;
+    margin: auto;
+}
+
+a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #999;
+}
+
+@media only screen and (min-device-width: 320px) and (max-device-width: 568px) {
+    body {
+        font-size: 120% !important;
+    }
+
+    div {
+        clear: both !important;
+        display: block !important;
+        width: 100% !important;
+        float: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    #name {
+        margin-top: 0.5em !important;
+    }
+
+    ul {
+        margin-top: 12em !important;
+    }
+
+    li {
+        float: none !important;
+        font-size: 600% !important;
+        margin-bottom: 0.3em !important;
+        width: 80% !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
