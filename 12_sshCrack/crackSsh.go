@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
 	"time"
 
@@ -25,8 +24,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Использование: %s IPList userDic passDic\n", os.Args[0])
 		os.Exit(1)
 	} else {
-		runtime.GOMAXPROCS(runtime.NumCPU())
-
 		iplist := os.Args[1]
 		userDict := os.Args[2]
 		passDict := os.Args[3]
