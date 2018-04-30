@@ -18,7 +18,7 @@ sudo apt-get install libpcap-dev
 ## The code contains comments in Russian
 
 ## License
-This project is licensed under MIT license. Please read the LICENSE file.
+This project is licensed under MIT license. Please read the [LICENSE](https://github.com/dreddsa5dies/goHackTools/tree/master/LICENSE.md) file.  
 
 ## Contribute
 Welcomes any kind of contribution. Please read the [CONTRIBUTING](https://github.com/dreddsa5dies/goHackTools/tree/master/CONTRIBUTING.md), [ISSUE TEMPLATE](https://github.com/dreddsa5dies/goHackTools/tree/master/ISSUE_TEMPLATE.md) and [CODE_OF_CONDUCT](https://github.com/dreddsa5dies/goHackTools/tree/master/CODE_OF_CONDUCT.md) file. 
