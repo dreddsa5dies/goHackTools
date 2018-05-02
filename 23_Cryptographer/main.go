@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 )
@@ -20,10 +21,9 @@ func main() {
 	fmt.Scanf("%s\n", &dir)
 
 	if !isDir(dir) {
-		fmt.Fprintf(os.Stderr, "It's not a directory\n")
-		os.Exit(1)
+		log.Fatalln("It's not a directory")
 	} else {
-		fmt.Fprintf(os.Stdout, "Directory ok\n")
+		log.Println("Directory ok")
 	}
 
 	fmt.Print("Write the password: ")
@@ -31,11 +31,10 @@ func main() {
 
 	regStr, _ := regexp.Compile(`([0-9a-zA-Z]){8,}`)
 	if regStr.MatchString(pass) {
-		fmt.Fprintf(os.Stdout, "Pass ok\n")
+		log.Println("Pass ok")
 	} else {
-		fmt.Fprintf(os.Stderr, "Bad password\n")
-		fmt.Fprintf(os.Stderr, "Use good password\n")
-		os.Exit(1)
+		log.Println("Bad password")
+		log.Fatalln("Use good password")
 	}
 
 	// get the hash
@@ -43,15 +42,7 @@ func main() {
 	hasher.Write([]byte(pass))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	hashSaveFile, err := os.OpenFile("save_hash", os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "os.OpenFile\n")
-		os.Exit(1)
-	}
-	defer hashSaveFile.Close()
-
-	fmt.Fprintf(os.Stdout, "Save IT >> %v\n", hashSaveFile.Name())
-	hashSaveFile.WriteString(hash)
+	decryptFile(hash)
 
 	fmt.Fprintln(os.Stdout, "-----------------------------------------------------------")
 
@@ -64,8 +55,7 @@ func cryptoDir(dir string, hash string) {
 	// открываем директорию
 	dh, err := os.Open(dir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "os.Open: %v\n", err)
-		os.Exit(1)
+		log.Fatalln("os.Open: %v\n", err)
 	}
 	defer dh.Close()
 
@@ -82,11 +72,10 @@ func cryptoDir(dir string, hash string) {
 				cryptoDir(dir+"/"+fi.Name(), hash)
 			} else {
 				// имя файла
-				fmt.Fprintf(os.Stdout, "encrypt %v\n", fi.Name())
+				log.Printf("encrypt %v\n", fi.Name())
 				file, err := ioutil.ReadFile(dir + "/" + fi.Name())
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "ioutil.ReadFile: %v\n", err)
-					os.Exit(1)
+					log.Fatalln("ioutil.ReadFile: %v\n", err)
 				}
 
 				encryptFile(dir+"/"+fi.Name()+".crp", file, hash)
@@ -100,13 +89,11 @@ func encrypt(data []byte, hash string) []byte {
 	block, _ := aes.NewCipher([]byte(hash))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "EncryptFunc NewGCM: %v\n", err)
-		os.Exit(1)
+		log.Fatalln("EncryptFunc NewGCM: %v\n", err)
 	}
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		fmt.Fprintf(os.Stderr, "EncryptFunc NonceSize: %v\n", err)
-		os.Exit(1)
+		log.Fatalln("EncryptFunc NonceSize: %v\n", err)
 	}
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
 	return ciphertext
@@ -115,60 +102,24 @@ func encrypt(data []byte, hash string) []byte {
 func encryptFile(filename string, data []byte, hash string) {
 	f, err := os.Create(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "encryptFileFunc Create: %v\n", err)
-		os.Exit(1)
+		log.Fatalln("encryptFileFunc Create: %v\n", err)
 	}
 	defer f.Close()
 	f.Write(encrypt(data, hash))
 }
-
-/*
-func decrypt(data []byte, passphrase string) []byte {
-	key := []byte(createHash(passphrase))
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "DecryptFunc NewCipher: %v\n", err)
-		os.Exit(1)
-	}
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "DecryptFunc NewGCM: %v\n", err)
-		os.Exit(1)
-	}
-	nonceSize := gcm.NonceSize()
-	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "PASSWORD FAIL\n%v\n", err)
-		os.Exit(1)
-	}
-	return plaintext
-}
-
-func decryptFile(filename string, passphrase string) []byte {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "decryptFileFunc ReadFile: %v\n", err)
-		os.Exit(1)
-	}
-	return decrypt(data, passphrase)
-}
-*/
 
 func isDir(name string) bool {
 	var stat bool
 
 	file, err := os.Open(name)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "os.Open: %v\n", err)
-		os.Exit(1)
+		log.Fatalln("os.Open: %v\n", err)
 	}
 	defer file.Close()
 
 	fi, err := file.Stat()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "file.Stat: %v\n", err)
-		os.Exit(1)
+		log.Fatalln("file.Stat: %v\n", err)
 	}
 
 	if fi.IsDir() {
@@ -178,3 +129,62 @@ func isDir(name string) bool {
 	}
 	return stat
 }
+
+func decryptFile(hash string) {
+	tmp, err := os.OpenFile("/tmp/decrypt.go", os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		log.Fatalln("os.OpenFile\n")
+	}
+	defer tmp.Close()
+
+	log.Printf("Save decrypt file >> %v\n", tmp.Name())
+	tmp.WriteString(hash)
+}
+
+/*
+var str = `package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/md5"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"io"
+	"log"
+	"io/ioutil"
+	"os"
+)
+
+func main() {
+
+}
+
+func decrypt(data []byte, hash string) []byte {
+	key := []byte(createHash(hash))
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		log.Fatalln("DecryptFunc NewCipher: %v\n", err)
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		log.Fatalln("DecryptFunc NewGCM: %v\n", err)
+	}
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		log.Fatalln("HASH FAIL\n%v\n", err)
+	}
+	return plaintext
+}
+
+func decryptFile(filename string, hash string) []byte {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatalln("decryptFileFunc ReadFile: %v\n", err)
+	}
+	return decrypt(data, hash)
+}`
+*/
