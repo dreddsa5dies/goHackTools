@@ -11,7 +11,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
+	"time"
 )
 
 func main() {
@@ -42,20 +44,21 @@ func main() {
 	hasher.Write([]byte(pass))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	decryptFile(hash)
+	decryptFileSave(hash, dir)
 
 	fmt.Fprintln(os.Stdout, "-----------------------------------------------------------")
 
 	cryptoDir(dir, hash)
 
-	os.Exit(0)
+	time.Sleep(2 * time.Second)
+	buildDecryptFile()
 }
 
 func cryptoDir(dir string, hash string) {
 	// открываем директорию
 	dh, err := os.Open(dir)
 	if err != nil {
-		log.Fatalln("os.Open: %v\n", err)
+		log.Fatalln(err)
 	}
 	defer dh.Close()
 
@@ -75,7 +78,7 @@ func cryptoDir(dir string, hash string) {
 				log.Printf("encrypt %v\n", fi.Name())
 				file, err := ioutil.ReadFile(dir + "/" + fi.Name())
 				if err != nil {
-					log.Fatalln("ioutil.ReadFile: %v\n", err)
+					log.Fatalln(err)
 				}
 
 				encryptFile(dir+"/"+fi.Name()+".crp", file, hash)
@@ -89,11 +92,11 @@ func encrypt(data []byte, hash string) []byte {
 	block, _ := aes.NewCipher([]byte(hash))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		log.Fatalln("EncryptFunc NewGCM: %v\n", err)
+		log.Fatalln(err)
 	}
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		log.Fatalln("EncryptFunc NonceSize: %v\n", err)
+		log.Fatalln(err)
 	}
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
 	return ciphertext
@@ -102,7 +105,7 @@ func encrypt(data []byte, hash string) []byte {
 func encryptFile(filename string, data []byte, hash string) {
 	f, err := os.Create(filename)
 	if err != nil {
-		log.Fatalln("encryptFileFunc Create: %v\n", err)
+		log.Fatalln(err)
 	}
 	defer f.Close()
 	f.Write(encrypt(data, hash))
@@ -113,13 +116,13 @@ func isDir(name string) bool {
 
 	file, err := os.Open(name)
 	if err != nil {
-		log.Fatalln("os.Open: %v\n", err)
+		log.Fatalln(err)
 	}
 	defer file.Close()
 
 	fi, err := file.Stat()
 	if err != nil {
-		log.Fatalln("file.Stat: %v\n", err)
+		log.Fatalln(err)
 	}
 
 	if fi.IsDir() {
@@ -130,61 +133,105 @@ func isDir(name string) bool {
 	return stat
 }
 
-func decryptFile(hash string) {
-	tmp, err := os.OpenFile("/tmp/decrypt.go", os.O_WRONLY|os.O_CREATE, 0600)
+func decryptFileSave(hash, dir string) {
+	tmp, err := os.OpenFile("./decrypt.go", os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		log.Fatalln("os.OpenFile\n")
+		log.Fatalln(err)
 	}
-	defer tmp.Close()
 
-	log.Printf("Save decrypt file >> %v\n", tmp.Name())
-	tmp.WriteString(hash)
-}
-
-/*
-var str = `package main
+	saveFile := fmt.Sprintf(`package main
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"io"
-	"log"
 	"io/ioutil"
+	"log"
 	"os"
+	"strings"
 )
 
 func main() {
+	hash := %s
+	dir := %s
+	fmt.Fprintln(os.Stdout, "-----------------------------------------------------------")
+	decryptoDir(dir, hash)
+	os.Exit(0)
+}
 
+func decryptoDir(dir string, hash string) {
+	// открываем директорию
+	dh, err := os.Open(dir)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer dh.Close()
+	// считывание списка файлов
+	for {
+		fis, err := dh.Readdir(10)
+		if err == io.EOF {
+			break
+		}
+		// проход
+		for _, fi := range fis {
+			// рекурсивный проход по поддиректориям
+			if fi.IsDir() {
+				decryptoDir(dir+"/"+fi.Name(), hash)
+			} else {
+				// имя файла
+				log.Println("decrypt ", fi.Name())
+				decryptFile(dir+"/"+fi.Name(), hash)
+				os.Remove(dir + "/" + fi.Name())
+			}
+		}
+	}
 }
 
 func decrypt(data []byte, hash string) []byte {
-	key := []byte(createHash(hash))
+	key := []byte(hash)
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		log.Fatalln("DecryptFunc NewCipher: %v\n", err)
+		log.Fatalln(err)
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		log.Fatalln("DecryptFunc NewGCM: %v\n", err)
+		log.Fatalln(err)
 	}
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		log.Fatalln("HASH FAIL\n%v\n", err)
+		log.Fatalln(err)
 	}
 	return plaintext
 }
-
-func decryptFile(filename string, hash string) []byte {
+		
+func decryptFile(filename string, hash string) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatalln("decryptFileFunc ReadFile: %v\n", err)
+		log.Fatalln(err)
 	}
-	return decrypt(data, hash)
-}`
-*/
+	f, err := os.Create(strings.TrimSuffix(filename, ".crp"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer f.Close()
+	f.Write(decrypt(data, hash))
+}`, `"`+hash+`"`, `"`+dir+`"`)
+
+	log.Printf("Save decrypt file >> %v\n", tmp.Name())
+	tmp.WriteString(saveFile)
+	tmp.Close()
+}
+
+func buildDecryptFile() {
+	cmd := exec.Command("/usr/local/go/bin/go", "build", "./decrypt.go")
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	os.Remove("./decrypt.go")
+}
