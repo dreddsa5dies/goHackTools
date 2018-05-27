@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,6 +14,19 @@ import (
 
 var opts struct {
 	Input string `short:"i" long:"input" default:"" description:"MAC address"`
+}
+
+// Coordinates - struct for xml data
+type Coordinates struct {
+	Latitude   string `xml:"latitude,attr"`
+	Longitude  string `xml:"longitude,attr"`
+	NLatitude  string `xml:"nlatitude,attr"`
+	NLongitude string `xml:"nlongitude,attr"`
+}
+
+type location struct {
+	XMLName  xml.Name    `xml:"location"`
+	Location Coordinates `xml:"coordinates"`
 }
 
 func main() {
@@ -28,6 +42,8 @@ func main() {
 
 	log.Println("Start")
 
+	// format MAC:-> bc988929e608
+	opts.Input = "bc988929e608"
 	url := fmt.Sprintf(`http://mobile.maps.yandex.net/cellid_location/?clid=1866854&lac=-1&cellid=-1&operatorid=null&countrycode=null&signalstrength=-1&wifinetworks=%s:-65&app=ymetro`, opts.Input)
 
 	resp, err := http.Get(url)
@@ -41,17 +57,30 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(string(body))
+	data := location{}
+	err = xml.Unmarshal(body, &data)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// header & footer KML
+	kmlheader := `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>`
+	kmlfooter := `</Document>
+</kml>`
+	kmlData := recKml(opts.Input, data.Location.Longitude, data.Location.Latitude)
+	fmt.Println(kmlheader + "\n" + kmlData + kmlfooter)
 
 	log.Println("End")
 	os.Exit(0)
 }
 
-func recKml(name string, long, lat float64) string {
+func recKml(name, long, lat string) string {
 	kml := fmt.Sprintf(`<Placemark>
 		<name>%s</name>
 		<Point>
-		<coordinates>%6f,%6f</coordinates>
+		<coordinates>%s,%s</coordinates>
 		</Point>
 		</Placemark>`, name, long, lat)
 	return kml
