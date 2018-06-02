@@ -31,6 +31,7 @@ func main() {
 
 	_, err := url.ParseRequestURI(opts.Input)
 	if err != nil {
+		fmt.Fprintf(os.Stdout, "Usage:\t%v -h\n", os.Args[0])
 		log.Fatalln(err)
 	}
 
