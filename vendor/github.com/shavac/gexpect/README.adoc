@@ -1,0 +1,15 @@
+= gexpect
+
+Expect in golang in spirit of python link:https://github.com/pexpect/pexpect[pexpect].
+
+image:https://godoc.org/github.com/shavac/gexpect?status.svg[link="http://godoc.org/github.com/shavac/gexpect"]
+
+toc::[]
+
+== Installation
+
+`go get github.com/shavac/gexpect`
+
+== Basic Usage
+
+See link:examples[]
