@@ -10,8 +10,8 @@ I used examples from the books "Violent Python" TJ O'Connor, "Black Hat Python" 
 examples from the book "Black Hat Go" Go Programming For Hackers and Pentesters by Tom Steele, Chris Patten, and Dan Kottmann  
 
 ## Package used
+Use [dep](https://github.com/golang/dep/cmd/dep) 
 ```bash
-go get -v -u github.com/alexmullins/zip github.com/amoghe/go-crypt github.com/shavac/gexpect github.com/mattn/go-sqlite3 rsc.io/pdf github.com/oschwald/geoip2-golang github.com/google/gopacket golang.org/x/crypto/ssh github.com/rwcarlsen/goexif/exif
 sudo apt-get install libpcap-dev 
 ```
 
