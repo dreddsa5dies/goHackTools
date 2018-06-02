@@ -8,13 +8,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/jessevdk/go-flags"
+	"regexp"
+	"strings"
 )
-
-var opts struct {
-	Input string `short:"i" long:"input" default:"" description:"MAC address"`
-}
 
 // Coordinates - struct for xml data
 type Coordinates struct {
@@ -30,58 +26,53 @@ type location struct {
 }
 
 func main() {
-	flags.Parse(&opts)
-
-	if len(os.Args) == 1 {
-		fmt.Fprintf(os.Stdout, "Usage:\t%v -h\n", os.Args[0])
-		os.Exit(1)
-	} else if os.Args[1] == "-h" || os.Args[1] != "-i" {
-		fmt.Fprintf(os.Stdout, "Usage:\t%v -h\n", os.Args[0])
+	if len(os.Args) == 1 || os.Args[1] == "-h" {
+		fmt.Fprintf(os.Stdout, "Usage:\t%v MAC-addr...\n", os.Args[0])
+		fmt.Printf("Output format: MAC Longitude Latitude\n")
 		os.Exit(1)
 	}
 
-	log.Println("Start")
-
-	// format MAC:-> bc988929e608
-	opts.Input = "bc988929e608"
-	url := fmt.Sprintf(`http://mobile.maps.yandex.net/cellid_location/?clid=1866854&lac=-1&cellid=-1&operatorid=null&countrycode=null&signalstrength=-1&wifinetworks=%s:-65&app=ymetro`, opts.Input)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
+	regMac, err := regexp.Compile(`([([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})`)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	data := location{}
-	err = xml.Unmarshal(body, &data)
-	if err != nil {
-		log.Fatalln(err)
+	for k := 1; k < len(os.Args); k++ {
+		if !regMac.MatchString(os.Args[k]) {
+			fmt.Fprintf(os.Stderr, "%s not found? please get MAC format 00:00:00:00:00:00 or 00-00-00-00-00-00\n", os.Args[k])
+			continue
+		}
+
+		macAdress := macFormat(os.Args[k])
+
+		url := fmt.Sprintf(`http://mobile.maps.yandex.net/cellid_location/?clid=1866854&lac=-1&cellid=-1&operatorid=null&countrycode=null&signalstrength=-1&wifinetworks=%s:-65&app=ymetro`, macAdress)
+
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Fatalf("http.Get: %s", err)
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("ioutil.ReadAll: %s", err)
+		}
+
+		data := location{}
+		err = xml.Unmarshal(body, &data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s not found\n", os.Args[k])
+			continue
+		}
+
+		fmt.Println(os.Args[k], data.Location.Longitude, data.Location.Latitude)
 	}
-
-	// header & footer KML
-	kmlheader := `<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-<Document>`
-	kmlfooter := `</Document>
-</kml>`
-	kmlData := recKml(opts.Input, data.Location.Longitude, data.Location.Latitude)
-	fmt.Println(kmlheader + "\n" + kmlData + kmlfooter)
-
-	log.Println("End")
 	os.Exit(0)
 }
 
-func recKml(name, long, lat string) string {
-	kml := fmt.Sprintf(`<Placemark>
-		<name>%s</name>
-		<Point>
-		<coordinates>%s,%s</coordinates>
-		</Point>
-		</Placemark>`, name, long, lat)
-	return kml
+func macFormat(mac string) string {
+	mac = strings.ToLower(mac)
+	mac = strings.Replace(mac, ":", "", -1)
+	mac = strings.Replace(mac, "-", "", -1)
+	return mac
 }
