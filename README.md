@@ -8,6 +8,10 @@ I used examples from the books "Violent Python" TJ O'Connor, "Black Hat Python" 
 
 ## TODO:
 examples from the book "Black Hat Go" Go Programming For Hackers and Pentesters by Tom Steele, Chris Patten, and Dan Kottmann  
+examples from the book "Security with Go" by John Daniel Leon  
+
+## THANK YOU:
+Thanks to all authors of amazing books on information security
 
 ## Package used
 Use [dep](https://github.com/golang/dep/cmd/dep) 
