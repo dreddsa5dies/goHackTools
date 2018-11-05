@@ -1,4 +1,5 @@
-// This program will take a domain name and return the MX records.
+// This program will find nameservers associated with a given hostname.
+
 package main
 
 import (
@@ -15,17 +16,17 @@ func main() {
 	}
 
 	arg := os.Args[1]
-	mxRecords, err := net.LookupMX(arg)
+	nameservers, err := net.LookupNS(arg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, mxRecord := range mxRecords {
-		fmt.Printf("Host: %s\tPreference: %d\n", mxRecord.Host, mxRecord.Pref)
+	for _, nameserver := range nameservers {
+		fmt.Println(nameserver.Host)
 	}
 }
 
 func usage(name string) {
 	fmt.Fprintf(os.Stdout, "Usage:\t%v hostname\n", name)
-	fmt.Printf("Looking up MX records\n")
+	fmt.Printf("Looking up nameservers\n")
 	os.Exit(1)
 }
