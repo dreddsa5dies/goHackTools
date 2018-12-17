@@ -1,7 +1,5 @@
 ## Contribute
-Welcomes any kind of contribution, please follow the [how to write GO code](https://golang.org/doc/code.html)  
-
-Welcomes any kind of contribution, please follow the next steps:
+Welcomes any kind of contribution, please read [how to write GO code](https://golang.org/doc/code.html) and follow the next steps:
 
 - Fork the project on github.com.
 - Create a new branch.
