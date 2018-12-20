@@ -20,7 +20,7 @@ func main() {
 	activeThreads := 0
 	doneChannel := make(chan bool)
 
-	for port := 1; port <= 65535; port++ {
+	for port := 0; port <= 65535; port++ {
 		go testTCPConnection(target, port, doneChannel)
 		activeThreads++
 	}
