@@ -2,53 +2,40 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 )
 
 func main() {
 	// справка
 	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Использование: %s ip-addr\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Using: %s ip-addr\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	target := os.Args[1]
 
-	wg := sync.WaitGroup{}
+	activeThreads := 0
+	doneChannel := make(chan bool)
 
-	c := func(ports int) {
-		conn, err := net.DialTimeout("tcp", target+":"+strconv.Itoa(ports), time.Duration(1)*time.Second)
-		if err == nil {
-			// отправка текста
-			fmt.Fprintf(conn, "HELLO\r\n")
-
-			buf := make([]byte, 0, 4096) // big buffer
-			tmp := make([]byte, 256)     // using small tmo buffer for demonstrating
-			for {
-				n, err := conn.Read(tmp)
-				if err != nil {
-					if err != io.EOF {
-						fmt.Println("read error:", err)
-					}
-					break
-				}
-				buf = append(buf, tmp[:n]...)
-			}
-			conn.Close()
-			fmt.Println(ports, " open")
-		}
-		wg.Done()
+	for port := 0; port <= 65535; port++ {
+		go testTCPConnection(target, port, doneChannel)
+		activeThreads++
 	}
-
-	wg.Add(65534)
-	for i := 0; i < 65534; i++ {
-		go c(i)
+	// Wait for all threads to finish
+	for activeThreads > 0 {
+		<-doneChannel
+		activeThreads--
 	}
-	wg.Wait()
-	os.Exit(0)
+}
+
+func testTCPConnection(ip string, port int, doneChannel chan bool) {
+	_, err := net.DialTimeout("tcp", ip+":"+strconv.Itoa(port),
+		time.Second*10)
+	if err == nil {
+		fmt.Printf("Port %d: Open\n", port)
+	}
+	doneChannel <- true
 }
