@@ -68,3 +68,15 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/geo"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/flopp/go-staticmaps"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/fogleman/gg"
