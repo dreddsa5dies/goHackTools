@@ -3,9 +3,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/Wessie/appdirs"
+  packages = ["."]
+  revision = "6573e894f8e294cbae0c4e45c25ff9f2e2918a4e"
+
+[[projects]]
+  branch = "master"
   name = "github.com/alexmullins/zip"
   packages = ["."]
-  revision = "f15f84f02c488c15e69b576a09169d08ac206988"
+  revision = "4affb64b04d017a32f9443975e26e841da367e0f"
 
 [[projects]]
   branch = "master"
@@ -14,14 +20,53 @@
   revision = "f85b640b0eefd979ef9bb2e919b53fe66f8b7b39"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/flopp/go-coordsparser"
+  packages = ["."]
+  revision = "845bca739e263e1cd38de25024a47b4d6acbfc1f"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/flopp/go-staticmaps"
+  packages = ["."]
+  revision = "320790ed53294a789e715b3d0d5da8110efea1a2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/fogleman/gg"
+  packages = ["."]
+  revision = "0403632d5b905943a1c2a5b2763aaecd568467ec"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/freetype"
+  packages = [
+    "raster",
+    "truetype"
+  ]
+  revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/geo"
+  packages = [
+    "r1",
+    "r2",
+    "r3",
+    "s1",
+    "s2"
+  ]
+  revision = "476085157cff9aaeef4d4f124649436542d4114a"
+
+[[projects]]
   name = "github.com/google/gopacket"
   packages = [
     ".",
     "layers",
     "pcap"
   ]
-  revision = "11c65f1ca9081dfea43b4f9643f5c155583b73ba"
-  version = "v1.1.14"
+  revision = "7f3fc6cbbb499248dca53da7fe3ed6c25a78d22f"
+  version = "v1.1.16"
 
 [[projects]]
   name = "github.com/jessevdk/go-flags"
@@ -32,8 +77,8 @@
 [[projects]]
   name = "github.com/mattn/go-sqlite3"
   packages = ["."]
-  revision = "323a32be5a2421b8c7087225079c6c900ec397cd"
-  version = "v1.7.0"
+  revision = "c7c4067b79cc51e6dfdcef5c702e74b1e0fa7c75"
+  version = "v1.10.0"
 
 [[projects]]
   name = "github.com/oschwald/geoip2-golang"
@@ -54,7 +99,7 @@
     "exif",
     "tiff"
   ]
-  revision = "8d986c03457a2057c7b0fb0a48113f7dd48f9619"
+  revision = "b1fd11e07dc5bc0d2ca3b79d28cbdf3c6d186247"
 
 [[projects]]
   branch = "master"
@@ -66,6 +111,12 @@
   revision = "ecdc926672398a032a8ab43aefb28c933d515d6d"
 
 [[projects]]
+  name = "github.com/tkrajina/gpxgo"
+  packages = ["gpx"]
+  revision = "1b1f71eb1b590891d4ce4e1325f8bacbb20d8d4c"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
@@ -73,12 +124,26 @@
     "ed25519",
     "ed25519/internal/edwards25519",
     "internal/chacha20",
+    "internal/subtle",
     "pbkdf2",
     "poly1305",
     "ssh",
     "ssh/agent"
   ]
-  revision = "5ba7f63082460102a45837dbd1827e10f9479ac0"
+  revision = "ffb98f73852f696ea2bb21a617a5c4b3e067a439"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/image"
+  packages = [
+    "draw",
+    "font",
+    "font/basicfont",
+    "font/plan9font",
+    "math/f64",
+    "math/fixed"
+  ]
+  revision = "31aff87c08e9a5e5d524279a564f96968336f886"
 
 [[projects]]
   branch = "master"
@@ -87,7 +152,7 @@
     "unix",
     "windows"
   ]
-  revision = "c11f84a56e43e20a78cee75a7c034031ecf57d1f"
+  revision = "cd391775e71e684db52b63df9affd58269495083"
 
 [[projects]]
   name = "rsc.io/pdf"
@@ -98,6 +163,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "08ad4275b1faab363ca675a710b9ecb55a808a5564b3a489368377aee63597b8"
+  inputs-digest = "8aa14aa6950e22bb559caa4bbbc6b0fdb37973bf578ead1919a264801843176c"
   solver-name = "gps-cdcl"
   solver-version = 1
