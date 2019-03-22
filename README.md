@@ -4,7 +4,12 @@
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/GDNsM0F)
 
 ## Hacker tools on Go (Golang)  
-I used examples from the books "Violent Python" TJ O'Connor, "Black Hat Python" Python Programming for Hackers and Pentesters by Justin Seitz, "Security with Go" by John Daniel Leon  and [asecuritysite](https://asecuritysite.com/) 
+I used examples from the books & materials:
+* "Violent Python" TJ O'Connor;
+* "Black Hat Python" Python Programming for Hackers and Pentesters by Justin Seitz;
+* "Security with Go" by John Daniel Leon;
+* "Python Web Penetration Testing Cookbook" by C.Buchanan, T.Ip, B.May, D.Mound, A.Mabbit;
+* [asecuritysite](https://asecuritysite.com/) 
 
 ## TODO:
 examples from the book "Black Hat Go" Go Programming For Hackers and Pentesters by Tom Steele, Chris Patten, and Dan Kottmann  
