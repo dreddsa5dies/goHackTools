@@ -1,4 +1,4 @@
-// Книжный шифр (book cipher) — Книжный шифр — вид шифра, в котором каждый элемент открытого
+// Книжный шифр (book cipher) — вид шифра, в котором каждый элемент открытого
 // текста (каждая буква или слово) заменяется на указатель (например, номер страницы, строки
 // и столбца) аналогичного элемента в дополнительном тексте-ключе.
 // Для дешифрования необходимо иметь как закрытый текст, так и дополнительный текст-ключ.
@@ -6,31 +6,34 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
-	"time"
 )
 
 func main() {
-	fmt.Print("Write the message\t:> ")
+	fmt.Print("Write the message:> ")
 	var startMessage string
-	_, err := fmt.Scanf("%s", &startMessage)
-	if err != nil {
-		log.Fatalln(err)
+	// scan ONE string & spaces
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		startMessage = scanner.Text()
+		break
 	}
 
-	fmt.Print("Write the book-key\t:> ")
+	fmt.Print("Write the book-key:> ")
 	var bookKey string
-	_, err = fmt.Scanf("%s", &bookKey)
+	_, err := fmt.Scanf("%s", &bookKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Print("[E]ncrypt|[D]ecrypt\t:> ")
+	fmt.Print("[E]ncrypt|[D]ecrypt:> ")
 	var key string
 	_, err = fmt.Scanf("%s", &key)
 	if err != nil {
@@ -47,30 +50,54 @@ func main() {
 		log.Fatalln("No such key!")
 	}
 
-	fmt.Println(encryptDecrypt(encDecBool, startMessage, bookKey))
+	fmt.Println("Final message: " + encryptDecrypt(encDecBool, startMessage, bookKey))
 }
 
 func encryptDecrypt(mode bool, message, key string) string {
+	final := ""
 
-	if mode {
-		// encrypt
-	} else {
-		// decrypt
-	}
-
-	// get random symbol from book
+	// get book
 	fileInfo, err := os.Stat(key)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Fatal("Book-key does not exist.")
 		}
 	}
-	dat, err := ioutil.ReadFile(fileInfo.Name())
+	book, err := ioutil.ReadFile(fileInfo.Name())
 	if err != nil {
 		log.Fatalln(err)
 	}
-	rand.Seed(time.Now().Unix()) // initialize global pseudo random generator
-	codingMess := string(dat[rand.Intn(len(dat))])
 
-	return codingMess
+	// get the mode & work it
+	if mode {
+		// encrypt
+		for i := 0; i < len(message); i++ {
+			var listIndexKey []int
+			for k := 0; k < len(string(book)); k++ {
+				if message[i] == string(book)[k] {
+					listIndexKey = append(listIndexKey, k)
+				}
+			}
+			final += strconv.Itoa(listIndexKey[i]) + "/"
+		}
+	} else {
+		// decrypt
+		for i := 0; i < len(regnumbers(message)); i++ {
+			tmpNumSymbol, _ := strconv.Atoi(regnumbers(message)[i])
+			for k := 0; k < len(string(book)); k++ {
+				if tmpNumSymbol == k {
+					final += string(string(book)[k])
+				}
+			}
+		}
+	}
+
+	return final
+}
+
+func regnumbers(text string) []string {
+	// create regexp
+	regNum, _ := regexp.Compile(`[0-9*]{1,}`)
+	// find number regexp
+	return regNum.FindAllString(text, -1)
 }
