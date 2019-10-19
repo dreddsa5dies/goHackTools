@@ -10,6 +10,7 @@ I used examples from the books & materials:
 * "Security with Go" by John Daniel Leon;
 * "Python Web Penetration Testing Cookbook" by C.Buchanan, T.Ip, B.May, D.Mound, A.Mabbit;
 * [asecuritysite](https://asecuritysite.com/) 
+* [Криптография с Python](https://vk.com/doc187366527_464874978?hash=45d8e4c6fd48820484&dl=8e644ab04c8ad6520d)  
 
 ## TODO:
 examples from the book "Black Hat Go" Go Programming For Hackers and Pentesters by Tom Steele, Chris Patten, and Dan Kottmann  
