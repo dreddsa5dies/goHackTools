@@ -341,6 +341,27 @@ func (ci CellID) String() string {
 	return b.String()
 }
 
+// cellIDFromString returns a CellID from a string in the form "1/3210".
+func cellIDFromString(s string) CellID {
+	level := len(s) - 2
+	if level < 0 || level > maxLevel {
+		return CellID(0)
+	}
+	face := int(s[0] - '0')
+	if face < 0 || face > 5 || s[1] != '/' {
+		return CellID(0)
+	}
+	id := CellIDFromFace(face)
+	for i := 2; i < len(s); i++ {
+		childPos := s[i] - '0'
+		if childPos < 0 || childPos > 3 {
+			return CellID(0)
+		}
+		id = id.Children()[childPos]
+	}
+	return id
+}
+
 // Point returns the center of the s2 cell on the sphere as a Point.
 // The maximum directional error in Point (compared to the exact
 // mathematical result) is 1.5 * dblEpsilon radians, and the maximum length
@@ -460,7 +481,7 @@ func (ci CellID) encode(e *encoder) {
 	e.writeUint64(uint64(ci))
 }
 
-// Decode encodes the CellID.
+// Decode decodes the CellID.
 func (ci *CellID) Decode(r io.Reader) error {
 	d := &decoder{r: asByteReader(r)}
 	ci.decode(d)
@@ -555,8 +576,8 @@ func cellIDFromFaceIJ(f, i, j int) CellID {
 	// Hilbert curve orientation respectively.
 	for k := 7; k >= 0; k-- {
 		mask := (1 << lookupBits) - 1
-		bits += int((i>>uint(k*lookupBits))&mask) << (lookupBits + 2)
-		bits += int((j>>uint(k*lookupBits))&mask) << 2
+		bits += ((i >> uint(k*lookupBits)) & mask) << (lookupBits + 2)
+		bits += ((j >> uint(k*lookupBits)) & mask) << 2
 		bits = lookupPos[bits]
 		n |= uint64(bits>>2) << (uint(k) * 2 * lookupBits)
 		bits &= (swapMask | invertMask)

@@ -42,6 +42,7 @@ type Context struct {
 
 	userAgent    string
 	tileProvider *TileProvider
+	cache        TileCache
 
 	overrideAttribution *string
 }
@@ -57,12 +58,18 @@ func NewContext() *Context {
 	t.background = nil
 	t.userAgent = ""
 	t.tileProvider = NewTileProviderOpenStreetMaps()
+	t.cache = NewTileCacheFromUserCache(t.tileProvider.Name, 0777)
 	return t
 }
 
 // SetTileProvider sets the TileProvider to be used
 func (m *Context) SetTileProvider(t *TileProvider) {
 	m.tileProvider = t
+}
+
+// SetCache takes a nil argument to disable caching
+func (m *Context) SetCache(cache TileCache) {
+	m.cache = cache
 }
 
 // SetUserAgent sets the HTTP user agent string used when downloading map tiles
@@ -472,7 +479,7 @@ func (m *Context) RenderWithBounds() (image.Image, s2.Rect, error) {
 }
 
 func (m *Context) renderLayer(gc *gg.Context, zoom int, trans *transformer, tileSize int, provider *TileProvider) error {
-	t := NewTileFetcher(provider)
+	t := NewTileFetcher(provider, m.cache)
 	if m.userAgent != "" {
 		t.SetUserAgent(m.userAgent)
 	}
@@ -494,6 +501,7 @@ func (m *Context) renderLayer(gc *gg.Context, zoom int, trans *transformer, tile
 					gc.DrawImage(tileImg, xx*tileSize, yy*tileSize)
 				} else {
 					log.Printf("Error downloading tile file: %s", err)
+					return err
 				}
 			}
 		}

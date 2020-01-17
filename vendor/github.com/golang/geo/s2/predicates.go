@@ -79,8 +79,8 @@ type Direction int
 // These are the three options for the direction of a set of points.
 const (
 	Clockwise        Direction = -1
-	Indeterminate              = 0
-	CounterClockwise           = 1
+	Indeterminate    Direction = 0
+	CounterClockwise Direction = 1
 )
 
 // newBigFloat constructs a new big.Float with maximum precision.
@@ -228,7 +228,7 @@ func expensiveSign(a, b, c Point) Direction {
 	// the three points are truly collinear (e.g., three points on the equator).
 	detSign := stableSign(a, b, c)
 	if detSign != Indeterminate {
-		return Direction(detSign)
+		return detSign
 	}
 
 	// Otherwise fall back to exact arithmetic and symbolic permutations.
@@ -240,7 +240,7 @@ func expensiveSign(a, b, c Point) Direction {
 func exactSign(a, b, c Point, perturb bool) Direction {
 	// Sort the three points in lexicographic order, keeping track of the sign
 	// of the permutation. (Each exchange inverts the sign of the determinant.)
-	permSign := Direction(CounterClockwise)
+	permSign := CounterClockwise
 	pa := &a
 	pb := &b
 	pc := &c
@@ -275,7 +275,7 @@ func exactSign(a, b, c Point, perturb bool) Direction {
 		// sign of the determinant.
 		detSign = symbolicallyPerturbedSign(xa, xb, xc, xbCrossXc)
 	}
-	return permSign * Direction(detSign)
+	return permSign * detSign
 }
 
 // symbolicallyPerturbedSign reports the sign of the determinant of three points

@@ -1,0 +1,68 @@
+# github.com/Wessie/appdirs v0.0.0-20141031215813-6573e894f8e2
+github.com/Wessie/appdirs
+# github.com/alexmullins/zip v0.0.0-20180717182244-4affb64b04d0
+github.com/alexmullins/zip
+# github.com/amoghe/go-crypt v0.0.0-20191109212615-b2ff80594b7f
+github.com/amoghe/go-crypt
+# github.com/flopp/go-coordsparser v0.0.0-20160810104536-845bca739e26
+github.com/flopp/go-coordsparser
+# github.com/flopp/go-staticmaps v0.0.0-20190722115053-456a5d548ba1
+github.com/flopp/go-staticmaps
+# github.com/fogleman/gg v1.3.0
+github.com/fogleman/gg
+# github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+github.com/golang/freetype/raster
+github.com/golang/freetype/truetype
+# github.com/golang/geo v0.0.0-20190916061304-5b978397cfec
+github.com/golang/geo/r1
+github.com/golang/geo/r2
+github.com/golang/geo/r3
+github.com/golang/geo/s1
+github.com/golang/geo/s2
+# github.com/google/gopacket v1.1.17
+github.com/google/gopacket
+github.com/google/gopacket/layers
+github.com/google/gopacket/pcap
+# github.com/jackdanger/collectlinks v0.0.0-20160421202702-24c4ee2870ba
+github.com/jackdanger/collectlinks
+# github.com/jessevdk/go-flags v1.4.0
+github.com/jessevdk/go-flags
+# github.com/mattn/go-sqlite3 v2.0.2+incompatible
+github.com/mattn/go-sqlite3
+# github.com/oschwald/geoip2-golang v1.4.0
+github.com/oschwald/geoip2-golang
+# github.com/oschwald/maxminddb-golang v1.6.0
+github.com/oschwald/maxminddb-golang
+# github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
+github.com/rwcarlsen/goexif/exif
+github.com/rwcarlsen/goexif/tiff
+# github.com/shavac/gexpect v0.0.0-20180514151559-ecdc92667239
+github.com/shavac/gexpect
+github.com/shavac/gexpect/pty
+# github.com/tkrajina/gpxgo v1.0.1
+github.com/tkrajina/gpxgo/gpx
+# golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
+golang.org/x/crypto/chacha20
+golang.org/x/crypto/curve25519
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/internal/subtle
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/poly1305
+golang.org/x/crypto/ssh
+golang.org/x/crypto/ssh/agent
+# golang.org/x/image v0.0.0-20191214001246-9130b4cfad52
+golang.org/x/image/draw
+golang.org/x/image/font
+golang.org/x/image/font/basicfont
+golang.org/x/image/math/f64
+golang.org/x/image/math/fixed
+# golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
+golang.org/x/net/html
+golang.org/x/net/html/atom
+# golang.org/x/sys v0.0.0-20191224085550-c709ea063b76
+golang.org/x/sys/cpu
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# rsc.io/pdf v0.1.1
+rsc.io/pdf

@@ -162,3 +162,16 @@ func (i Interval) ApproxEqual(other Interval) bool {
 	return math.Abs(other.Lo-i.Lo) <= epsilon &&
 		math.Abs(other.Hi-i.Hi) <= epsilon
 }
+
+// DirectedHausdorffDistance returns the Hausdorff distance to the given interval. For two
+// intervals x and y, this distance is defined as
+//     h(x, y) = max_{p in x} min_{q in y} d(p, q).
+func (i Interval) DirectedHausdorffDistance(other Interval) float64 {
+	if i.IsEmpty() {
+		return 0
+	}
+	if other.IsEmpty() {
+		return math.Inf(1)
+	}
+	return math.Max(0, math.Max(i.Hi-other.Hi, other.Lo-i.Lo))
+}

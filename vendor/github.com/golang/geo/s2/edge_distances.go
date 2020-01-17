@@ -241,10 +241,33 @@ func interiorDist(x, a, b Point, minDist s1.ChordAngle, alwaysUpdate bool) (s1.C
 	// interior case then both of these angles must be acute.
 	//
 	// We check this by computing the squared edge lengths of the planar
-	// triangle ABX, and testing acuteness using the law of cosines:
+	// triangle ABX, and testing whether angles XAB and XBA are both acute using
+	// the law of cosines:
 	//
-	//   max(XA^2, XB^2) < min(XA^2, XB^2) + AB^2
-	if math.Max(xa2, xb2) >= math.Min(xa2, xb2)+(a.Sub(b.Vector)).Norm2() {
+	//            | XA^2 - XB^2 | < AB^2      (*)
+	//
+	// This test must be done conservatively (taking numerical errors into
+	// account) since otherwise we might miss a situation where the true minimum
+	// distance is achieved by a point on the edge interior.
+	//
+	// There are two sources of error in the expression above (*).  The first is
+	// that points are not normalized exactly; they are only guaranteed to be
+	// within 2 * dblEpsilon of unit length.  Under the assumption that the two
+	// sides of (*) are nearly equal, the total error due to normalization errors
+	// can be shown to be at most
+	//
+	//        2 * dblEpsilon * (XA^2 + XB^2 + AB^2) + 8 * dblEpsilon ^ 2 .
+	//
+	// The other source of error is rounding of results in the calculation of (*).
+	// Each of XA^2, XB^2, AB^2 has a maximum relative error of 2.5 * dblEpsilon,
+	// plus an additional relative error of 0.5 * dblEpsilon in the final
+	// subtraction which we further bound as 0.25 * dblEpsilon * (XA^2 + XB^2 +
+	// AB^2) for convenience.  This yields a final error bound of
+	//
+	//        4.75 * dblEpsilon * (XA^2 + XB^2 + AB^2) + 8 * dblEpsilon ^ 2 .
+	ab2 := a.Sub(b.Vector).Norm2()
+	maxError := (4.75*dblEpsilon*(xa2+xb2+ab2) + 8*dblEpsilon*dblEpsilon)
+	if math.Abs(xa2-xb2) >= ab2+maxError {
 		return minDist, false
 	}
 
@@ -274,8 +297,11 @@ func interiorDist(x, a, b Point, minDist s1.ChordAngle, alwaysUpdate bool) (s1.C
 	// Otherwise we do the exact, more expensive test for the interior case.
 	// This test is very likely to succeed because of the conservative planar
 	// test we did initially.
+	//
+	// TODO(roberts): Ensure that the errors in test are accurately reflected in the
+	// minUpdateInteriorDistanceMaxError.
 	cx := c.Cross(x.Vector)
-	if a.Dot(cx) >= 0 || b.Dot(cx) <= 0 {
+	if a.Sub(x.Vector).Dot(cx) >= 0 || b.Sub(x.Vector).Dot(cx) <= 0 {
 		return minDist, false
 	}
 

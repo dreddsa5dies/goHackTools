@@ -114,6 +114,23 @@ func OriginReferencePoint(contained bool) ReferencePoint {
 	return ReferencePoint{Point: OriginPoint(), Contained: contained}
 }
 
+// typeTag is a 32-bit tag that can be used to identify the type of an encoded
+// Shape. All encodable types have a non-zero type tag. The tag associated with
+type typeTag uint32
+
+const (
+	// Indicates that a given Shape type cannot be encoded.
+	typeTagNone        typeTag = 0
+	typeTagPolygon     typeTag = 1
+	typeTagPolyline    typeTag = 2
+	typeTagPointVector typeTag = 3
+	typeTagLaxPolyline typeTag = 4
+	typeTagLaxPolygon  typeTag = 5
+
+	// The minimum allowable tag for future user-defined Shape types.
+	typeTagMinUser typeTag = 8192
+)
+
 // Shape represents polygonal geometry in a flexible way. It is organized as a
 // collection of edges that optionally defines an interior. All geometry
 // represented by a given Shape must have the same dimension, which means that
@@ -219,6 +236,10 @@ type Shape interface {
 
 	// IsFull reports whether the Shape contains all points on the sphere.
 	IsFull() bool
+
+	// typeTag returns a value that can be used to identify the type of an
+	// encoded Shape.
+	typeTag() typeTag
 
 	// We do not support implementations of this interface outside this package.
 	privateInterface()

@@ -22,7 +22,7 @@ import (
 // Angle represents a 1D angle. The internal representation is a double precision
 // value in radians, so conversion to and from radians is exact.
 // Conversions between E5, E6, E7, and Degrees are not always
-// exact. For example, Degrees(3.1) is different from E6(3100000) or E7(310000000).
+// exact. For example, Degrees(3.1) is different from E6(3100000) or E7(31000000).
 //
 // The following conversions between degrees and radians are exact:
 //
@@ -98,7 +98,7 @@ func (a Angle) E7() int32 { return round(a.Degrees() * 1e7) }
 // Abs returns the absolute value of the angle.
 func (a Angle) Abs() Angle { return Angle(math.Abs(float64(a))) }
 
-// Normalized returns an equivalent angle in (-2π, 2π].
+// Normalized returns an equivalent angle in (-π, π].
 func (a Angle) Normalized() Angle {
 	rad := math.Remainder(float64(a), 2*math.Pi)
 	if rad <= -math.Pi {
@@ -113,5 +113,3 @@ func (a Angle) String() string {
 
 // BUG(dsymonds): The major differences from the C++ version are:
 //   - no unsigned E5/E6/E7 methods
-//   - no S2Point or S2LatLng constructors
-//   - no comparison or arithmetic operators

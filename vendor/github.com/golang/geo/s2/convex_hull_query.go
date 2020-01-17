@@ -223,15 +223,15 @@ func singlePointLoop(p Point) *Loop {
 	d1 := p.Cross(d0)
 	vertices := []Point{
 		p,
-		Point{p.Add(d0.Mul(offset)).Normalize()},
-		Point{p.Add(d1.Mul(offset)).Normalize()},
+		{p.Add(d0.Mul(offset)).Normalize()},
+		{p.Add(d1.Mul(offset)).Normalize()},
 	}
 	return LoopFromPoints(vertices)
 }
 
 // singleEdgeLoop constructs a loop consisting of the two vertices and their midpoint.
 func singleEdgeLoop(a, b Point) *Loop {
-	vertices := []Point{a, b, Point{a.Add(b.Vector).Normalize()}}
+	vertices := []Point{a, b, {a.Add(b.Vector).Normalize()}}
 	loop := LoopFromPoints(vertices)
 	// The resulting loop may be clockwise, so invert it if necessary.
 	loop.Normalize()

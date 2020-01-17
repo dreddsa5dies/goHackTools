@@ -16,6 +16,7 @@ package s2
 
 import (
 	"math"
+	"sort"
 	"sync"
 	"sync/atomic"
 
@@ -303,18 +304,9 @@ func (s *ShapeIndexIterator) refresh() {
 // seek positions the iterator at the first cell whose ID >= target, or at the
 // end of the index if no such cell exists.
 func (s *ShapeIndexIterator) seek(target CellID) {
-	s.position = 0
-	// In C++, this relies on the lower_bound method of the underlying btree_map.
-	// TODO(roberts): Convert this to a binary search since the list of cells is ordered.
-	for k, v := range s.index.cells {
-		// We've passed the cell that is after us, so we are done.
-		if v >= target {
-			s.position = k
-			break
-		}
-		// Otherwise, advance the position.
-		s.position++
-	}
+	s.position = sort.Search(len(s.index.cells), func(i int) bool {
+		return s.index.cells[i] >= target
+	})
 	s.refresh()
 }
 
@@ -894,7 +886,6 @@ func (s *ShapeIndex) addFaceEdge(fe faceEdge, allEdges [][]faceEdge) {
 			allEdges[face] = append(allEdges[face], fe)
 		}
 	}
-	return
 }
 
 // updateFaceEdges adds or removes the various edges from the index.
@@ -1188,7 +1179,7 @@ func (s *ShapeIndex) makeIndexCell(p *PaddedCell, edges []*clippedEdge, t *track
 		var clipped *clippedShape
 		// advance to next value base + i
 		eshapeID := int32(s.Len())
-		cshapeID := int32(eshapeID) // Sentinels
+		cshapeID := eshapeID // Sentinels
 
 		if eNext != len(edges) {
 			eshapeID = edges[eNext].faceEdge.shapeID
@@ -1495,7 +1486,7 @@ func (s *ShapeIndex) countShapes(edges []*clippedEdge, shapeIDs []int32) int {
 	}
 
 	// Count any remaining containing shapes.
-	count += int(len(shapeIDs)) - int(shapeIDidx)
+	count += len(shapeIDs) - shapeIDidx
 	return count
 }
 
@@ -1514,7 +1505,3 @@ func maxLevelForEdge(edge Edge) int {
 func (s *ShapeIndex) removeShapeInternal(removed *removedShape, allEdges [][]faceEdge, t *tracker) {
 	// TODO(roberts): finish the implementation of this.
 }
-
-// TODO(roberts): Differences from C++.
-// ShapeContainsPoint
-// FindContainingShapes

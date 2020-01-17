@@ -379,7 +379,7 @@ func areSiblings(a, b, c, d CellID) bool {
 	// mask that blocks out the two bits that encode the child position of
 	// "id" with respect to its parent, then check that the other three
 	// children all agree with "mask".
-	mask := uint64(d.lsb() << 1)
+	mask := d.lsb() << 1
 	mask = ^(mask + (mask << 1))
 	idMasked := (uint64(d) & mask)
 	return ((uint64(a)&mask) == idMasked &&

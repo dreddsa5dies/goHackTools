@@ -220,7 +220,7 @@ func (r Rect) Intersects(other Rect) bool {
 	return r.Lat.Intersects(other.Lat) && r.Lng.Intersects(other.Lng)
 }
 
-// CapBound returns a cap that countains Rect.
+// CapBound returns a cap that contains Rect.
 func (r Rect) CapBound() Cap {
 	// We consider two possible bounding caps, one whose axis passes
 	// through the center of the lat-long rectangle and one whose axis
@@ -459,6 +459,176 @@ func (r *Rect) decode(d *decoder) {
 	r.Lng.Lo = d.readFloat64()
 	r.Lng.Hi = d.readFloat64()
 	return
+}
+
+// DistanceToLatLng returns the minimum distance (measured along the surface of the sphere)
+// from a given point to the rectangle (both its boundary and its interior).
+// If r is empty, the result is meaningless.
+// The latlng must be valid.
+func (r Rect) DistanceToLatLng(ll LatLng) s1.Angle {
+	if r.Lng.Contains(float64(ll.Lng)) {
+		return maxAngle(0, ll.Lat-s1.Angle(r.Lat.Hi), s1.Angle(r.Lat.Lo)-ll.Lat)
+	}
+
+	i := s1.IntervalFromEndpoints(r.Lng.Hi, r.Lng.ComplementCenter())
+	rectLng := r.Lng.Lo
+	if i.Contains(float64(ll.Lng)) {
+		rectLng = r.Lng.Hi
+	}
+
+	lo := LatLng{s1.Angle(r.Lat.Lo) * s1.Radian, s1.Angle(rectLng) * s1.Radian}
+	hi := LatLng{s1.Angle(r.Lat.Hi) * s1.Radian, s1.Angle(rectLng) * s1.Radian}
+	return DistanceFromSegment(PointFromLatLng(ll), PointFromLatLng(lo), PointFromLatLng(hi))
+}
+
+// DirectedHausdorffDistance returns the directed Hausdorff distance (measured along the
+// surface of the sphere) to the given Rect. The directed Hausdorff
+// distance from rectangle A to rectangle B is given by
+//     h(A, B) = max_{p in A} min_{q in B} d(p, q).
+func (r Rect) DirectedHausdorffDistance(other Rect) s1.Angle {
+	if r.IsEmpty() {
+		return 0 * s1.Radian
+	}
+	if other.IsEmpty() {
+		return math.Pi * s1.Radian
+	}
+
+	lng := r.Lng.DirectedHausdorffDistance(other.Lng)
+	return directedHausdorffDistance(lng, r.Lat, other.Lat)
+}
+
+// HausdorffDistance returns the undirected Hausdorff distance (measured along the
+// surface of the sphere) to the given Rect.
+// The Hausdorff distance between rectangle A and rectangle B is given by
+//     H(A, B) = max{h(A, B), h(B, A)}.
+func (r Rect) HausdorffDistance(other Rect) s1.Angle {
+	return maxAngle(r.DirectedHausdorffDistance(other),
+		other.DirectedHausdorffDistance(r))
+}
+
+// directedHausdorffDistance returns the directed Hausdorff distance
+// from one longitudinal edge spanning latitude range 'a' to the other
+// longitudinal edge spanning latitude range 'b', with their longitudinal
+// difference given by 'lngDiff'.
+func directedHausdorffDistance(lngDiff s1.Angle, a, b r1.Interval) s1.Angle {
+	// By symmetry, we can assume a's longitude is 0 and b's longitude is
+	// lngDiff. Call b's two endpoints bLo and bHi. Let H be the hemisphere
+	// containing a and delimited by the longitude line of b. The Voronoi diagram
+	// of b on H has three edges (portions of great circles) all orthogonal to b
+	// and meeting at bLo cross bHi.
+	// E1: (bLo, bLo cross bHi)
+	// E2: (bHi, bLo cross bHi)
+	// E3: (-bMid, bLo cross bHi), where bMid is the midpoint of b
+	//
+	// They subdivide H into three Voronoi regions. Depending on how longitude 0
+	// (which contains edge a) intersects these regions, we distinguish two cases:
+	// Case 1: it intersects three regions. This occurs when lngDiff <= π/2.
+	// Case 2: it intersects only two regions. This occurs when lngDiff > π/2.
+	//
+	// In the first case, the directed Hausdorff distance to edge b can only be
+	// realized by the following points on a:
+	// A1: two endpoints of a.
+	// A2: intersection of a with the equator, if b also intersects the equator.
+	//
+	// In the second case, the directed Hausdorff distance to edge b can only be
+	// realized by the following points on a:
+	// B1: two endpoints of a.
+	// B2: intersection of a with E3
+	// B3: farthest point from bLo to the interior of D, and farthest point from
+	//     bHi to the interior of U, if any, where D (resp. U) is the portion
+	//     of edge a below (resp. above) the intersection point from B2.
+
+	if lngDiff < 0 {
+		panic("impossible: negative lngDiff")
+	}
+	if lngDiff > math.Pi {
+		panic("impossible: lngDiff > Pi")
+	}
+
+	if lngDiff == 0 {
+		return s1.Angle(a.DirectedHausdorffDistance(b))
+	}
+
+	// Assumed longitude of b.
+	bLng := lngDiff
+	// Two endpoints of b.
+	bLo := PointFromLatLng(LatLng{s1.Angle(b.Lo), bLng})
+	bHi := PointFromLatLng(LatLng{s1.Angle(b.Hi), bLng})
+
+	// Cases A1 and B1.
+	aLo := PointFromLatLng(LatLng{s1.Angle(a.Lo), 0})
+	aHi := PointFromLatLng(LatLng{s1.Angle(a.Hi), 0})
+	maxDistance := maxAngle(
+		DistanceFromSegment(aLo, bLo, bHi),
+		DistanceFromSegment(aHi, bLo, bHi))
+
+	if lngDiff <= math.Pi/2 {
+		// Case A2.
+		if a.Contains(0) && b.Contains(0) {
+			maxDistance = maxAngle(maxDistance, lngDiff)
+		}
+		return maxDistance
+	}
+
+	// Case B2.
+	p := bisectorIntersection(b, bLng)
+	pLat := LatLngFromPoint(p).Lat
+	if a.Contains(float64(pLat)) {
+		maxDistance = maxAngle(maxDistance, p.Angle(bLo.Vector))
+	}
+
+	// Case B3.
+	if pLat > s1.Angle(a.Lo) {
+		intDist, ok := interiorMaxDistance(r1.Interval{a.Lo, math.Min(float64(pLat), a.Hi)}, bLo)
+		if ok {
+			maxDistance = maxAngle(maxDistance, intDist)
+		}
+	}
+	if pLat < s1.Angle(a.Hi) {
+		intDist, ok := interiorMaxDistance(r1.Interval{math.Max(float64(pLat), a.Lo), a.Hi}, bHi)
+		if ok {
+			maxDistance = maxAngle(maxDistance, intDist)
+		}
+	}
+
+	return maxDistance
+}
+
+// interiorMaxDistance returns the max distance from a point b to the segment spanning latitude range
+// aLat on longitude 0 if the max occurs in the interior of aLat. Otherwise, returns (0, false).
+func interiorMaxDistance(aLat r1.Interval, b Point) (a s1.Angle, ok bool) {
+	// Longitude 0 is in the y=0 plane. b.X >= 0 implies that the maximum
+	// does not occur in the interior of aLat.
+	if aLat.IsEmpty() || b.X >= 0 {
+		return 0, false
+	}
+
+	// Project b to the y=0 plane. The antipodal of the normalized projection is
+	// the point at which the maxium distance from b occurs, if it is contained
+	// in aLat.
+	intersectionPoint := PointFromCoords(-b.X, 0, -b.Z)
+	if !aLat.InteriorContains(float64(LatLngFromPoint(intersectionPoint).Lat)) {
+		return 0, false
+	}
+	return b.Angle(intersectionPoint.Vector), true
+}
+
+// bisectorIntersection return the intersection of longitude 0 with the bisector of an edge
+// on longitude 'lng' and spanning latitude range 'lat'.
+func bisectorIntersection(lat r1.Interval, lng s1.Angle) Point {
+	lng = s1.Angle(math.Abs(float64(lng)))
+	latCenter := s1.Angle(lat.Center())
+
+	// A vector orthogonal to the bisector of the given longitudinal edge.
+	orthoBisector := LatLng{latCenter - math.Pi/2, lng}
+	if latCenter < 0 {
+		orthoBisector = LatLng{-latCenter - math.Pi/2, lng - math.Pi}
+	}
+
+	// A vector orthogonal to longitude 0.
+	orthoLng := Point{r3.Vector{0, -1, 0}}
+
+	return orthoLng.PointCross(PointFromLatLng(orthoBisector))
 }
 
 // BUG: The major differences from the C++ version are:

@@ -20,7 +20,7 @@ var (
 )
 
 // PointVector is a Shape representing a set of Points. Each point
-// is represented as a degenerate point with the same starting and ending
+// is represented as a degenerate edge with the same starting and ending
 // vertices.
 //
 // This type is useful for adding a collection of points to an ShapeIndex.
@@ -38,4 +38,5 @@ func (p *PointVector) ChainPosition(e int) ChainPosition { return ChainPosition{
 func (p *PointVector) Dimension() int                    { return 0 }
 func (p *PointVector) IsEmpty() bool                     { return defaultShapeIsEmpty(p) }
 func (p *PointVector) IsFull() bool                      { return defaultShapeIsFull(p) }
+func (p *PointVector) typeTag() typeTag                  { return typeTagPointVector }
 func (p *PointVector) privateInterface()                 {}

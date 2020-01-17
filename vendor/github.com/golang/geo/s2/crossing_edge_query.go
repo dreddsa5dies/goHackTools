@@ -152,14 +152,13 @@ func (c *CrossingEdgeQuery) candidates(a, b Point, shape Shape) []int {
 
 	for _, cell := range c.cells {
 		if cell == nil {
+			continue
 		}
 		clipped := cell.findByShapeID(shapeID)
 		if clipped == nil {
 			continue
 		}
-		for _, j := range clipped.edges {
-			edges = append(edges, j)
-		}
+		edges = append(edges, clipped.edges...)
 	}
 
 	if len(c.cells) > 1 {
@@ -190,7 +189,7 @@ func uniqueInts(in []int) []int {
 // CAVEAT: This method may return shapes that have an empty set of candidate edges.
 // However the return value is non-empty only if at least one shape has a candidate edge.
 func (c *CrossingEdgeQuery) candidatesEdgeMap(a, b Point) EdgeMap {
-	edgeMap := make(EdgeMap, 0)
+	edgeMap := make(EdgeMap)
 
 	// If there are only a few edges then it's faster to use brute force. We
 	// only bother with this optimization when there is a single shape.
@@ -232,7 +231,7 @@ func (c *CrossingEdgeQuery) candidatesEdgeMap(a, b Point) EdgeMap {
 }
 
 // getCells returns the set of ShapeIndexCells that might contain edges intersecting
-// the edge AB in the given cell root. This method is used primarly by loop and shapeutil.
+// the edge AB in the given cell root. This method is used primarily by loop and shapeutil.
 func (c *CrossingEdgeQuery) getCells(a, b Point, root *PaddedCell) []*ShapeIndexCell {
 	aUV, bUV, ok := ClipToFace(a, b, root.id.Face())
 	if ok {

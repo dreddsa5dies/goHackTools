@@ -1,6 +1,9 @@
 package maxminddb
 
-import "reflect"
+import (
+	"reflect"
+	"runtime"
+)
 
 type verifier struct {
 	reader *Reader
@@ -15,7 +18,9 @@ func (r *Reader) Verify() error {
 		return err
 	}
 
-	return v.verifyDatabase()
+	err := v.verifyDatabase()
+	runtime.KeepAlive(v.reader)
+	return err
 }
 
 func (v *verifier) verifyMetadata() error {

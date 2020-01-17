@@ -17,25 +17,20 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-
-	"github.com/Wessie/appdirs"
 )
 
 // TileFetcher downloads map tile images from a TileProvider
 type TileFetcher struct {
 	tileProvider *TileProvider
-	cacheDir     string
-	useCaching   bool
+	cache        TileCache
 	userAgent    string
 }
 
 // NewTileFetcher creates a new Tilefetcher struct
-func NewTileFetcher(tileProvider *TileProvider) *TileFetcher {
+func NewTileFetcher(tileProvider *TileProvider, cache TileCache) *TileFetcher {
 	t := new(TileFetcher)
 	t.tileProvider = tileProvider
-	app := appdirs.New("go-staticmaps", "flopp.net", "0.1")
-	t.cacheDir = fmt.Sprintf("%s/%s", app.UserCache(), tileProvider.Name)
-	t.useCaching = true
+	t.cache = cache
 	t.userAgent = "Mozilla/5.0+(compatible; go-staticmaps/0.1; https://github.com/flopp/go-staticmaps)"
 	return t
 }
@@ -54,19 +49,14 @@ func (t *TileFetcher) url(zoom, x, y int) string {
 	return t.tileProvider.getURL(shard, zoom, x, y)
 }
 
-func (t *TileFetcher) cacheFileName(zoom int, x, y int) string {
-	return fmt.Sprintf("%s/%d/%d/%d", t.cacheDir, zoom, x, y)
-}
-
-// ToggleCaching enables/disables caching
-func (t *TileFetcher) ToggleCaching(enabled bool) {
-	t.useCaching = enabled
+func cacheFileName(cache TileCache, zoom int, x, y int) string {
+	return fmt.Sprintf("%s/%d/%d/%d", cache.Path(), zoom, x, y)
 }
 
 // Fetch download (or retrieves from the cache) a tile image for the specified zoom level and tile coordinates
 func (t *TileFetcher) Fetch(zoom, x, y int) (image.Image, error) {
-	if t.useCaching {
-		fileName := t.cacheFileName(zoom, x, y)
+	if t.cache != nil {
+		fileName := cacheFileName(t.cache, zoom, x, y)
 		cachedImg, err := t.loadCache(fileName)
 		if err == nil {
 			return cachedImg, nil
@@ -84,8 +74,8 @@ func (t *TileFetcher) Fetch(zoom, x, y int) (image.Image, error) {
 		return nil, err
 	}
 
-	if t.useCaching {
-		fileName := t.cacheFileName(zoom, x, y)
+	if t.cache != nil {
+		fileName := cacheFileName(t.cache, zoom, x, y)
 		if err := t.storeCache(fileName, data); err != nil {
 			log.Printf("Failed to store map tile as '%s': %s", fileName, err)
 		}
@@ -136,13 +126,14 @@ func (t *TileFetcher) createCacheDir(path string) error {
 	src, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return os.MkdirAll(path, 0777)
+			return os.MkdirAll(path, t.cache.Perm())
 		}
 		return err
 	}
 	if src.IsDir() {
 		return nil
 	}
+
 	return fmt.Errorf("File exists but is not a directory: %s", path)
 }
 
@@ -153,7 +144,13 @@ func (t *TileFetcher) storeCache(fileName string, data []byte) error {
 		return err
 	}
 
-	file, err := os.Create(fileName)
+	// Create file using the configured directory create permission with the
+	// 'x' bit removed.
+	file, err := os.OpenFile(
+		fileName,
+		os.O_RDWR|os.O_CREATE|os.O_TRUNC,
+		t.cache.Perm()&0666,
+	)
 	if err != nil {
 		return err
 	}

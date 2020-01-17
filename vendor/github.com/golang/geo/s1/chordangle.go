@@ -243,3 +243,8 @@ func (c ChordAngle) Cos() float64 {
 func (c ChordAngle) Tan() float64 {
 	return c.Sin() / c.Cos()
 }
+
+// TODO(roberts): Differences from C++:
+//   Helpers to/from E5/E6/E7
+//   Helpers to/from degrees and radians directly.
+//   FastUpperBoundFrom(angle Angle)

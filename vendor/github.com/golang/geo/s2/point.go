@@ -128,7 +128,12 @@ func (p Point) Distance(b Point) s1.Angle {
 
 // ApproxEqual reports whether the two points are similar enough to be equal.
 func (p Point) ApproxEqual(other Point) bool {
-	return p.Vector.Angle(other.Vector) <= s1.Angle(epsilon)
+	return p.approxEqual(other, s1.Angle(epsilon))
+}
+
+// approxEqual reports whether the two points are within the given epsilon.
+func (p Point) approxEqual(other Point, eps s1.Angle) bool {
+	return p.Vector.Angle(other.Vector) <= eps
 }
 
 // ChordAngleBetweenPoints constructs a ChordAngle corresponding to the distance

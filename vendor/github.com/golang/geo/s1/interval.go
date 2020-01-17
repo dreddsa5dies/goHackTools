@@ -19,14 +19,25 @@ import (
 	"strconv"
 )
 
-// Interval represents a closed interval on a unit circle.
-// Zero-length intervals (where Lo == Hi) represent single points.
-// If Lo > Hi then the interval is "inverted".
-// The point at (-1, 0) on the unit circle has two valid representations,
-// [π,π] and [-π,-π]. We normalize the latter to the former in IntervalFromEndpoints.
-// There are two special intervals that take advantage of that:
-//   - the full interval, [-π,π], and
-//   - the empty interval, [π,-π].
+// An Interval represents a closed interval on a unit circle (also known
+// as a 1-dimensional sphere). It is capable of representing the empty
+// interval (containing no points), the full interval (containing all
+// points), and zero-length intervals (containing a single point).
+//
+// Points are represented by the angle they make with the positive x-axis in
+// the range [-π, π]. An interval is represented by its lower and upper
+// bounds (both inclusive, since the interval is closed). The lower bound may
+// be greater than the upper bound, in which case the interval is "inverted"
+// (i.e. it passes through the point (-1, 0)).
+//
+// The point (-1, 0) has two valid representations, π and -π. The
+// normalized representation of this point is π, so that endpoints
+// of normal intervals are in the range (-π, π]. We normalize the latter to
+// the former in IntervalFromEndpoints. However, we take advantage of the point
+// -π to construct two special intervals:
+//   The full interval is [-π, π]
+//   The empty interval is [π, -π].
+//
 // Treat the exported fields as read-only.
 type Interval struct {
 	Lo, Hi float64
@@ -271,7 +282,7 @@ func (i Interval) Intersection(oi Interval) Interval {
 }
 
 // AddPoint returns the interval expanded by the minimum amount necessary such
-// that it contains the given point "p" (an angle in the range [-Pi, Pi]).
+// that it contains the given point "p" (an angle in the range [-π, π]).
 func (i Interval) AddPoint(p float64) Interval {
 	if math.Abs(p) > math.Pi {
 		return i
@@ -338,11 +349,114 @@ func (i Interval) Expanded(margin float64) Interval {
 	return result
 }
 
+// ApproxEqual reports whether this interval can be transformed into the given
+// interval by moving each endpoint by at most ε, without the
+// endpoints crossing (which would invert the interval). Empty and full
+// intervals are considered to start at an arbitrary point on the unit circle,
+// so any interval with (length <= 2*ε) matches the empty interval, and
+// any interval with (length >= 2*π - 2*ε) matches the full interval.
+func (i Interval) ApproxEqual(other Interval) bool {
+	// Full and empty intervals require special cases because the endpoints
+	// are considered to be positioned arbitrarily.
+	if i.IsEmpty() {
+		return other.Length() <= 2*epsilon
+	}
+	if other.IsEmpty() {
+		return i.Length() <= 2*epsilon
+	}
+	if i.IsFull() {
+		return other.Length() >= 2*(math.Pi-epsilon)
+	}
+	if other.IsFull() {
+		return i.Length() >= 2*(math.Pi-epsilon)
+	}
+
+	// The purpose of the last test below is to verify that moving the endpoints
+	// does not invert the interval, e.g. [-1e20, 1e20] vs. [1e20, -1e20].
+	return (math.Abs(math.Remainder(other.Lo-i.Lo, 2*math.Pi)) <= epsilon &&
+		math.Abs(math.Remainder(other.Hi-i.Hi, 2*math.Pi)) <= epsilon &&
+		math.Abs(i.Length()-other.Length()) <= 2*epsilon)
+
+}
+
 func (i Interval) String() string {
 	// like "[%.7f, %.7f]"
 	return "[" + strconv.FormatFloat(i.Lo, 'f', 7, 64) + ", " + strconv.FormatFloat(i.Hi, 'f', 7, 64) + "]"
 }
 
-// BUG(dsymonds): The major differences from the C++ version are:
-//   - no validity checking on construction, etc. (not a bug?)
-//   - a few operations
+// Complement returns the complement of the interior of the interval. An interval and
+// its complement have the same boundary but do not share any interior
+// values. The complement operator is not a bijection, since the complement
+// of a singleton interval (containing a single value) is the same as the
+// complement of an empty interval.
+func (i Interval) Complement() Interval {
+	if i.Lo == i.Hi {
+		// Singleton. The interval just contains a single point.
+		return FullInterval()
+	}
+	// Handles empty and full.
+	return Interval{i.Hi, i.Lo}
+}
+
+// ComplementCenter returns the midpoint of the complement of the interval. For full and empty
+// intervals, the result is arbitrary. For a singleton interval (containing a
+// single point), the result is its antipodal point on S1.
+func (i Interval) ComplementCenter() float64 {
+	if i.Lo != i.Hi {
+		return i.Complement().Center()
+	}
+	// Singleton. The interval just contains a single point.
+	if i.Hi <= 0 {
+		return i.Hi + math.Pi
+	}
+	return i.Hi - math.Pi
+}
+
+// DirectedHausdorffDistance returns the Hausdorff distance to the given interval.
+// For two intervals i and y, this distance is defined by
+//     h(i, y) = max_{p in i} min_{q in y} d(p, q),
+// where d(.,.) is measured along S1.
+func (i Interval) DirectedHausdorffDistance(y Interval) Angle {
+	if y.ContainsInterval(i) {
+		return 0 // This includes the case i is empty.
+	}
+	if y.IsEmpty() {
+		return Angle(math.Pi) // maximum possible distance on s1.
+	}
+	yComplementCenter := y.ComplementCenter()
+	if i.Contains(yComplementCenter) {
+		return Angle(positiveDistance(y.Hi, yComplementCenter))
+	}
+
+	// The Hausdorff distance is realized by either two i.Hi endpoints or two
+	// i.Lo endpoints, whichever is farther apart.
+	hiHi := 0.0
+	if IntervalFromEndpoints(y.Hi, yComplementCenter).Contains(i.Hi) {
+		hiHi = positiveDistance(y.Hi, i.Hi)
+	}
+
+	loLo := 0.0
+	if IntervalFromEndpoints(yComplementCenter, y.Lo).Contains(i.Lo) {
+		loLo = positiveDistance(i.Lo, y.Lo)
+	}
+
+	return Angle(math.Max(hiHi, loLo))
+}
+
+// Project returns the closest point in the interval to the given point p.
+// The interval must be non-empty.
+func (i Interval) Project(p float64) float64 {
+	if p == -math.Pi {
+		p = math.Pi
+	}
+	if i.fastContains(p) {
+		return p
+	}
+	// Compute distance from p to each endpoint.
+	dlo := positiveDistance(p, i.Lo)
+	dhi := positiveDistance(i.Hi, p)
+	if dlo < dhi {
+		return i.Lo
+	}
+	return i.Hi
+}
