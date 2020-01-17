@@ -17,7 +17,7 @@ I used examples from the books & materials:
 Thanks to all authors of amazing books on information security
 
 ## Package used
-Use [go mod](https://blog.golang.org/using-go-modules) && 
+Migrating to [Go Modules](https://blog.golang.org/using-go-modules) && 
 ```bash
 sudo apt-get install libpcap-dev 
 ```
