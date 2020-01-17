@@ -5,6 +5,9 @@ import (
 	"net"
 	"os"
 	"sort"
+	"time"
+
+	"github.com/briandowns/spinner"
 )
 
 func main() {
@@ -12,10 +15,13 @@ func main() {
 		usage(os.Args[0])
 	}
 
+	s := spinner.New(spinner.CharSets[36], 100*time.Millisecond) // Build our new spinner
+	s.Color("red")
 	target := os.Args[1]
 	ports := make(chan int, 100)
 	results := make(chan int)
 
+	s.Start()
 	var openports []int
 	for i := 0; i < cap(ports); i++ {
 		go worker(ports, results, target)
@@ -38,9 +44,11 @@ func main() {
 	close(results)
 
 	sort.Ints(openports)
+	fmt.Println()
 	for _, port := range openports {
 		fmt.Printf("%d open\n", port)
 	}
+	s.Stop()
 }
 
 func worker(ports, results chan int, target string) {

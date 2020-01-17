@@ -6,6 +6,7 @@ require (
 	github.com/Wessie/appdirs v0.0.0-20141031215813-6573e894f8e2 // indirect
 	github.com/alexmullins/zip v0.0.0-20180717182244-4affb64b04d0
 	github.com/amoghe/go-crypt v0.0.0-20191109212615-b2ff80594b7f
+	github.com/briandowns/spinner v1.8.0 // indirect
 	github.com/flopp/go-coordsparser v0.0.0-20160810104536-845bca739e26 // indirect
 	github.com/flopp/go-staticmaps v0.0.0-20190722115053-456a5d548ba1
 	github.com/fogleman/gg v1.3.0
