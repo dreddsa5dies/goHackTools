@@ -25,3 +25,4 @@ type APIInfo struct {
 	Unlocked     bool   `json:"unlocked"`
 }
 ```
+but I have doubts, start [issue](https://github.com/blackhat-go/bhg/issues/2)
