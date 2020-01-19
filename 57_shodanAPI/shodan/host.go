@@ -3,10 +3,12 @@ package shodan
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
-// HostLocation - ...
+// HostLocation - information of host location
 type HostLocation struct {
 	City         string  `json:"city"`
 	RegionCode   string  `json:"region_code"`
@@ -20,7 +22,7 @@ type HostLocation struct {
 	Latitude     float32 `json:"latitude"`
 }
 
-// Host - ...
+// Host - information of host
 type Host struct {
 	OS        string       `json:"os"`
 	Timestamp string       `json:"timestamp"`
@@ -36,12 +38,12 @@ type Host struct {
 	IPString  string       `json:"ip_str"`
 }
 
-// HostSearch - ...
+// HostSearch - matches hosts
 type HostSearch struct {
 	Matches []Host `json:"matches"`
 }
 
-// HostSearch - ...
+// HostSearch - get API information
 func (s *Client) HostSearch(q string) (*HostSearch, error) {
 	res, err := http.Get(
 		fmt.Sprintf("%s/shodan/host/search?key=%s&query=%s", BaseURL, s.apiKey, q),
@@ -51,8 +53,15 @@ func (s *Client) HostSearch(q string) (*HostSearch, error) {
 	}
 	defer res.Body.Close()
 
+	body, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var ret HostSearch
-	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+	err = json.Unmarshal(body, &ret)
+	if err != nil {
 		return nil, err
 	}
 

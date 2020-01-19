@@ -18,7 +18,7 @@ func main() {
 	s := shodan.New(apiKey)
 	info, err := s.APIInfo()
 	if err != nil {
-		log.Panicln(err)
+		log.Fatalln(err)
 	}
 	fmt.Printf(
 		"Query Credits: %d\nScan Credits:  %d\n\n",
