@@ -14,7 +14,7 @@ type APIInfo struct {
 	ScanCredits  int    `json:"scan_credits"`
 	Telnet       bool   `json:"telnet"`
 	Plan         string `json:"plan"`
-	Https        bool   `json:"https"`
+	HTTPS        bool   `json:"https"`
 	Unlocked     bool   `json:"unlocked"`
 }
 
