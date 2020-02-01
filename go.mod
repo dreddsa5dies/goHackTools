@@ -16,6 +16,7 @@ require (
 	github.com/jackdanger/collectlinks v0.0.0-20160421202702-24c4ee2870ba
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
+	github.com/miekg/dns v1.1.27
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/shavac/gexpect v0.0.0-20180514151559-ecdc92667239
