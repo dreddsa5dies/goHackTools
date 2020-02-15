@@ -54,7 +54,7 @@ func main() {
 func worker(ports, results chan int, target string) {
 	for p := range ports {
 		address := fmt.Sprintf(target+":%d", p)
-		conn, err := net.Dial("tcp", address)
+		conn, err := net.DialTimeout("tcp", address, 10*time.Second)
 		if err != nil {
 			results <- 0
 			continue
