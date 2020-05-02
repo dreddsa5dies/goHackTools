@@ -56,8 +56,8 @@ func main() {
 		j := scanner.Text()
 		// строки с логин/пароль
 		if strings.Contains(j, ":") {
-			user := strings.Split(j, ":")[0]
-			cryptPass := strings.Split(j, ":")[1]
+			shadowText := strings.Split(j, ":")
+			user, cryptPass := shadowText[0], shadowText[1]
 			fmt.Printf("[*] Cracking Password For: %v\n", user)
 			for i := 0; i < len(passDict)-1; i++ {
 				if testPass(cryptPass, passDict[i]) != "" {
