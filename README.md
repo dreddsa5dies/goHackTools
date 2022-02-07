@@ -31,5 +31,3 @@ In spite of the license, I PREDICT that all the examples here are for reference 
 
 ## Contribute
 Welcomes any kind of contribution. Please read the [CONTRIBUTING](https://github.com/dreddsa5dies/goHackTools/tree/master/CONTRIBUTING.md), [ISSUE TEMPLATE](https://github.com/dreddsa5dies/goHackTools/tree/master/ISSUE_TEMPLATE.md) and [CODE_OF_CONDUCT](https://github.com/dreddsa5dies/goHackTools/tree/master/CODE_OF_CONDUCT.md) file. 
-
-[![Anurag's github stats](https://github-readme-stats.vercel.app/api?username=dreddsa5dies)](https://github.com/anuraghazra/github-readme-stats)
