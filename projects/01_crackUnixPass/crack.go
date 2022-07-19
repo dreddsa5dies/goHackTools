@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
 
 	"os"
 
@@ -43,9 +42,10 @@ func main() {
 	defer passFile.Close()
 
 	// парольный словарь
-	dictFile, err := ioutil.ReadFile(dictionary)
+	dictFile, err := os.ReadFile(dictionary)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 
 	passDict := strings.Split(string(dictFile), "\n")
@@ -59,6 +59,7 @@ func main() {
 			shadowText := strings.Split(j, ":")
 			user, cryptPass := shadowText[0], shadowText[1]
 			fmt.Printf("[*] Cracking Password For: %v\n", user)
+
 			for i := 0; i < len(passDict)-1; i++ {
 				if testPass(cryptPass, passDict[i]) != "" {
 					println(testPass(cryptPass, passDict[i]))
@@ -69,7 +70,7 @@ func main() {
 	}
 }
 
-func testPass(cryptPass string, passWord string) string {
+func testPass(cryptPass, passWord string) string {
 	saltSearch := strings.LastIndex(cryptPass, "$")
 	salt := cryptPass[0:saltSearch]
 
@@ -77,9 +78,11 @@ func testPass(cryptPass string, passWord string) string {
 	if err != nil {
 		log.Fatalf("Ошибка SHA: %v", err)
 	}
+
 	// если найден !
 	if cryptWord == cryptPass {
 		return "[+] Found PASSWORD: " + passWord
 	}
+
 	return ""
 }
