@@ -24,4 +24,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
 	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52 // indirect
 	rsc.io/pdf v0.1.1
+	shodan v0.0.0-00010101000000-000000000000
 )
+
+replace shodan => ./projects/57_shodanAPI/shodan

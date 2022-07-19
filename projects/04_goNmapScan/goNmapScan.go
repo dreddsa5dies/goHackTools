@@ -2,23 +2,25 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"syscall"
 )
 
 func main() {
+	const arg = 2
 	// go run goNmapScan.go IP
 	// справка
-	if len(os.Args) != 2 {
+	if len(os.Args) != arg {
 		fmt.Fprintf(os.Stderr, "Использование: %s ip-addr\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	// установка местонахождения NMAP
-	binary, lookErr := exec.LookPath("/usr/bin/nmap")
-	if lookErr != nil {
-		panic(lookErr)
+	binary, err := exec.LookPath("/usr/bin/nmap")
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	// установка аргументов
@@ -26,8 +28,8 @@ func main() {
 
 	env := os.Environ()
 
-	execErr := syscall.Exec(binary, args, env)
-	if execErr != nil {
-		panic(execErr)
+	err = syscall.Exec(binary, args, env)
+	if err != nil {
+		log.Fatalln(err)
 	}
 }

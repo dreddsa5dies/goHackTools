@@ -8,9 +8,14 @@ import (
 	"time"
 )
 
+const (
+	args                  = 2
+	seconds time.Duration = 10
+)
+
 func main() {
 	// справка
-	if len(os.Args) != 2 {
+	if len(os.Args) != args {
 		fmt.Fprintf(os.Stderr, "Using: %s ip-addr\n", os.Args[0])
 		os.Exit(1)
 	}
@@ -32,8 +37,11 @@ func main() {
 }
 
 func testTCPConnection(ip string, port int, doneChannel chan bool) {
-	_, err := net.DialTimeout("tcp", ip+":"+strconv.Itoa(port),
-		time.Second*10)
+	_, err := net.DialTimeout(
+		"tcp",
+		ip+":"+strconv.Itoa(port),
+		time.Second*seconds,
+	)
 	if err == nil {
 		fmt.Printf("Port %d: Open\n", port)
 	}

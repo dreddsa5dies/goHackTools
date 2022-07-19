@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dreddsa5dies/goHackTools/57_shodanAPI/shodan"
+	"shodan"
 )
 
 func main() {

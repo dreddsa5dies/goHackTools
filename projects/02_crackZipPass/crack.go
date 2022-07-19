@@ -33,12 +33,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	word := make(chan string, 0)
-	found := make(chan string, 0)
+	word := make(chan string)
+	found := make(chan string)
 
 	var wg sync.WaitGroup
 	for i := 0; i < concurrency; i++ {
 		wg.Add(1)
+
 		go zipCrackWorker(word, found, &wg)
 	}
 
@@ -51,6 +52,7 @@ func main() {
 	defer dictFile.Close()
 
 	scanner := bufio.NewScanner(dictFile)
+
 	go func() {
 		for scanner.Scan() {
 			pass := scanner.Text()
@@ -60,6 +62,7 @@ func main() {
 	}()
 
 	done := make(chan bool)
+
 	go func() {
 		wg.Wait()
 		done <- true
@@ -69,12 +72,13 @@ func main() {
 	case f := <-found:
 		println("[+] Found password")
 		println("[+] Password =", f)
+
 		return
 	case <-done:
 		println("[+] Password not found")
+
 		return
 	}
-
 }
 
 func zipCrackWorker(word <-chan string, found chan<- string, wg *sync.WaitGroup) {
@@ -84,7 +88,9 @@ func zipCrackWorker(word <-chan string, found chan<- string, wg *sync.WaitGroup)
 		log.Fatal(err)
 	}
 	defer zipr.Close()
+
 	defer wg.Done()
+
 	for w := range word {
 		for _, z := range zipr.File {
 			z.SetPassword(w)
