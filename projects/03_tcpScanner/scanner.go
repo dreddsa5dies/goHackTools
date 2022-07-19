@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var (
+const (
 	args                  = 2
 	seconds time.Duration = 10
 )
