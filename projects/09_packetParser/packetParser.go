@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -36,35 +37,43 @@ func main() {
 		if net := packet.NetworkLayer(); net != nil {
 			src, dst := net.NetworkFlow().Endpoints()
 			fmt.Printf("[+] Src: %v, --> Dst: %v \n", src, dst)
-			printRecord(src.String(), dst.String())
+			if err := printRecord(src.String(), dst.String()); err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }
 
-func printRecord(src string, dst string) {
+func printRecord(src, dst string) error {
 	if src == "" || dst == "" {
-		log.Fatalln("Error IP")
+		return errors.New("error IP")
 	}
 
-	absPath, _ := filepath.Abs("GeoLite2-City.mmdb")
+	absPath, err := filepath.Abs("GeoLite2-City.mmdb")
+	if err != nil {
+		return err
+	}
+
 	db, err := geoip2.Open(absPath)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer db.Close()
 
 	ipSRC := net.ParseIP(src)
 	recordSRC, err := db.City(ipSRC)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	ipDST := net.ParseIP(dst)
 	recordDST, err := db.City(ipDST)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	fmt.Printf("[+] SRC: %v, %v\n", recordSRC.City.Names["ru"], recordSRC.Country.Names["ru"])
 	fmt.Printf("[+] DST: %v, %v\n", recordDST.City.Names["ru"], recordDST.Country.Names["ru"])
+
+	return nil
 }
