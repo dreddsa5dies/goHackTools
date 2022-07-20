@@ -27,12 +27,23 @@ func main() {
 	defer child.Close()
 	// ввод пароля
 	if idx, _ := child.ExpectTimeout(0*time.Second, regexp.MustCompile("password:")); idx >= 0 {
-		child.SendLine("pass")
+		err = child.SendLine("pass")
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	// ввод команды
-	child.SendLine("sudo cat /etc/shadow | grep root")
+	err = child.SendLine("sudo cat /etc/shadow | grep root")
+	if err != nil {
+		log.Println(err)
+	}
 
 	// время ожидания
-	child.InteractTimeout(3 * time.Second)
+	var three time.Duration
+	err = child.InteractTimeout(three * time.Second)
+
+	if err != nil {
+		log.Println(err)
+	}
 }
