@@ -10,10 +10,14 @@ import (
 	"rsc.io/pdf"
 )
 
+const (
+	twoArgs = 2
+)
+
 func main() {
 	// справка
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Использование: %s FILE.pdf\n", os.Args[0])
+	if len(os.Args) != twoArgs {
+		fmt.Fprintf(os.Stderr, "Use: %s FILE.pdf\n", os.Args[0])
 		os.Exit(1)
 	}
 
@@ -28,10 +32,11 @@ func printMeta(filename string) {
 
 	docInfo := pdfFile.Trailer().Key("Info").String()
 
-	docInfo = strings.TrimLeft(docInfo, "<<")
-	docInfo = strings.TrimRight(docInfo, ">>")
+	docInfo = strings.TrimLeft(docInfo, "<")
+	docInfo = strings.TrimRight(docInfo, ">")
 	info := strings.Split(docInfo, "/")
-	for _, v := range info {
-		println(v)
+
+	for i := range info {
+		println(info[i])
 	}
 }
