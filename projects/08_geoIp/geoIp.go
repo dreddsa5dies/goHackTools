@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -10,34 +11,47 @@ import (
 )
 
 func main() {
-	printRecord("173.255.226.98")
-
-	printRecord("81.2.69.142")
-
-	printRecord("35.184.160.12")
-}
-
-func printRecord(tgt string) {
-	if tgt == "" {
-		log.Fatalln("Error IP")
+	tmp := []string{
+		"173.255.226.98",
+		"81.2.69.142",
+		"35.184.160.12",
 	}
 
-	absPath, _ := filepath.Abs("GeoLite2-City.mmdb")
+	for i := range tmp {
+		if err := printRecord(tmp[i]); err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+func printRecord(tgt string) error {
+	if tgt == "" {
+		return errors.New("error IP")
+	}
+
+	absPath, err := filepath.Abs("GeoLite2-City.mmdb")
+	if err != nil {
+		return err
+	}
+
 	db, err := geoip2.Open(absPath)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer db.Close()
 
 	ip := net.ParseIP(tgt)
+
 	record, err := db.City(ip)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
 	fmt.Printf("[*] Target: %v Geo-located.\n", tgt)
 	fmt.Printf("[+] %v, %v, %v\n", record.City.Names["ru"], record.Subdivisions[0].Names["ru"], record.Country.Names["ru"])
 	fmt.Printf("[+] ISO country code: %v\n", record.Country.IsoCode)
 	fmt.Printf("[+] Time zone: %v\n", record.Location.TimeZone)
 	fmt.Printf("[+] Coordinates: %v, %v\n", record.Location.Latitude, record.Location.Longitude)
-	println()
+
+	return nil
 }
