@@ -22,12 +22,12 @@ func main() {
 
 	addr, err := net.ResolveTCPAddr("tcp", *localAddr)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	pending, complete := make(chan *net.TCPConn), make(chan *net.TCPConn)
@@ -35,12 +35,13 @@ func main() {
 	for i := 0; i < 5; i++ {
 		go handleConn(pending, complete)
 	}
+
 	go closeConn(complete)
 
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {
-			panic(err)
+			log.Fatalln(err)
 		}
 		pending <- conn
 	}
@@ -49,42 +50,53 @@ func main() {
 func proxyConn(conn *net.TCPConn) {
 	rAddr, err := net.ResolveTCPAddr("tcp", *remoteAddr)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	rConn, err := net.DialTCP("tcp", nil, rAddr)
 	if err != nil {
-		panic(err)
+		log.Println(err)
+		return
 	}
 	defer rConn.Close()
 
 	buf := &bytes.Buffer{}
+
 	for {
 		data := make([]byte, 256)
+
 		n, err := conn.Read(data)
 		if err != nil {
-			panic(err)
+			log.Println(err)
+			return
 		}
+
 		buf.Write(data[:n])
+
 		if data[0] == '\r' && data[1] == '\n' {
 			break
 		}
 	}
 
 	if _, err := rConn.Write(buf.Bytes()); err != nil {
-		panic(err)
+		log.Println(err)
+		return
 	}
+
 	log.Printf("sent:\n%v", hex.Dump(buf.Bytes()))
 
 	data := make([]byte, 1024)
+
 	n, err := rConn.Read(data)
 	if err != nil {
 		if err != io.EOF {
-			panic(err)
-		} else {
-			log.Printf("received err: %v", err)
+			log.Println(err)
+			return
 		}
+
+		log.Printf("received err: %v", err)
 	}
+
 	log.Printf("received:\n%v", hex.Dump(data[:n]))
 }
 
