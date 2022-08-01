@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 
@@ -39,6 +40,7 @@ func (tunnel *SSHtunnel) Start() error {
 		if err != nil {
 			return err
 		}
+
 		go tunnel.forward(conn)
 	}
 }
@@ -68,10 +70,12 @@ func (tunnel *SSHtunnel) forward(localConn net.Conn) {
 }
 
 func SSHAgent() ssh.AuthMethod {
-	if sshAgent, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK")); err == nil {
-		return ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
+	sshAgent, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
+	if err != nil {
+		return nil
 	}
-	return nil
+
+	return ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
 }
 
 func main() {
@@ -104,5 +108,8 @@ func main() {
 		Remote: remoteEndpoint,
 	}
 
-	tunnel.Start()
+	err := tunnel.Start()
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
