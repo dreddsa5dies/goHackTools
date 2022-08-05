@@ -5,7 +5,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -65,8 +64,8 @@ func main() {
 			{`38425053`, `*.psd`, `Photoshop file`},
 			{`8BPS`, `*.psd`, `Photoshop file`},
 			{`4D5A`, `*.ocx`, `Active X`},
-			{`4D6963726F736F66742056697375616C2053747564696F20536F6C7574696F6E2046696C65`, `*.sln`, `Microsft SLN file`},
-			{`Microsoft Visual Studio Solution File`, `*.sln`, `Microsft SLN file`},
+			{`4D6963726F736F66742056697375616C2053747564696F20536F6C7574696F6E2046696C65`, `*.sln`, `Microsoft SLN file`},
+			{`Microsoft Visual Studio Solution File`, `*.sln`, `Microsoft SLN file`},
 			{`504B030414000600`, `*.docx`, `Microsoft DOCX file`},
 			{`504B030414000600`, `*.pptx`, `Microsoft PPTX file`},
 			{`504B030414000600`, `*.xlsx`, `Microsoft XLSX file`},
@@ -91,7 +90,7 @@ func main() {
 		}
 
 		for _, file := range os.Args[1:] {
-			f, err := ioutil.ReadFile(file)
+			f, err := os.ReadFile(file)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "file: %v\n", err)
 				continue

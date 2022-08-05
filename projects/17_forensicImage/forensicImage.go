@@ -20,16 +20,19 @@ func main() {
 			f, err := os.Open(file)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "file: %v\n", err)
+				f.Close()
 				continue
 			}
-			defer f.Close()
 
 			_, kind, err := image.Decode(f)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%v: %v\n", f.Name(), err)
+				f.Close()
 				continue
 			}
-			fmt.Fprintln(os.Stderr, f.Name(), "Format =", kind)
+			fmt.Fprintln(os.Stdout, f.Name(), "Format =", kind)
+
+			f.Close()
 		}
 	}
 }
