@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/rwcarlsen/goexif/exif"
@@ -13,24 +14,22 @@ func main() {
 	} else {
 		f, err := os.Open(os.Args[1])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "file: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("can't open file: %v\n", err)
 		}
+		defer f.Close()
 
 		x, err := exif.Decode(f)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Decode: %v\n", err)
-			os.Exit(1)
+			log.Printf("can't decode photo: %v\n", err)
+			return
 		}
 
 		lat, long, err := x.LatLong()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "LatLong: %v\n", err)
-			os.Exit(1)
-		} else {
-			fmt.Fprintln(os.Stdout, f.Name())
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("lat:\t%v\nlong:\t%v", lat, long))
-			os.Exit(0)
+			log.Printf("can't get the latitude and longitude of the photo: %v\n", err)
+			return
 		}
+
+		fmt.Printf("%v\nlat:\t%v\nlong:\t%v", f.Name(), lat, long)
 	}
 }
