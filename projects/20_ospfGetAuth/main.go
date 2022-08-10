@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/google/gopacket/layers"
@@ -21,8 +22,7 @@ func main() {
 		// Open file instead of device
 		handle, err := pcap.OpenOffline(os.Args[1])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "PCAPFile: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("PCAPFile: %v\n", err)
 		}
 		defer handle.Close()
 
@@ -32,14 +32,16 @@ func main() {
 			// проходим по всем пакетам и ранжируем по уровню ospf
 			ospf := packet.Layer(layers.LayerTypeOSPF)
 			if nil != ospf {
-				ospf, _ := ospf.(*layers.OSPFv2)
-				switch {
-				case ospf.AuType == 1:
-					fmt.Printf("Simple version: %v\n", ospf.AuType)
-					fmt.Printf("OSPF Pass: %v\n", ospf.Authentication)
-				case ospf.AuType == 2:
-					fmt.Printf("MD5 version: %v\n", ospf.AuType)
-					fmt.Printf("Authentication: %d\n", ospf.Authentication)
+				ospf, ok := ospf.(*layers.OSPFv2)
+				if ok {
+					switch {
+					case ospf.AuType == 1:
+						log.Printf("Simple version: %v\n", ospf.AuType)
+						log.Printf("OSPF Pass: %v\n", ospf.Authentication)
+					case ospf.AuType == 2:
+						log.Printf("MD5 version: %v\n", ospf.AuType)
+						log.Printf("Authentication: %d\n", ospf.Authentication)
+					}
 				}
 			}
 		}
