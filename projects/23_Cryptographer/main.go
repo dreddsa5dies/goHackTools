@@ -3,12 +3,11 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // так надо
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -31,7 +30,7 @@ func main() {
 	fmt.Print("Write the password: ")
 	fmt.Scanf("%s\n", &pass)
 
-	regStr, _ := regexp.Compile(`([0-9a-zA-Z]){8,}`)
+	regStr := regexp.MustCompile(`([0-9a-zA-Z]){8,}`)
 	if regStr.MatchString(pass) {
 		log.Println("Pass ok")
 	} else {
@@ -40,7 +39,7 @@ func main() {
 	}
 
 	// get the hash
-	hasher := md5.New()
+	hasher := md5.New() //nolint:gosec // так надо
 	hasher.Write([]byte(pass))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
@@ -54,7 +53,7 @@ func main() {
 	buildDecryptFile()
 }
 
-func cryptoDir(dir string, hash string) {
+func cryptoDir(dir, hash string) {
 	// открываем директорию
 	dh, err := os.Open(dir)
 	if err != nil {
@@ -76,9 +75,10 @@ func cryptoDir(dir string, hash string) {
 			} else {
 				// имя файла
 				log.Printf("encrypt %v\n", fi.Name())
-				file, err := ioutil.ReadFile(dir + "/" + fi.Name())
+				file, err := os.ReadFile(dir + "/" + fi.Name())
 				if err != nil {
-					log.Fatalln(err)
+					log.Println(err)
+					return
 				}
 
 				encryptFile(dir+"/"+fi.Name()+".crp", file, hash)
@@ -90,15 +90,19 @@ func cryptoDir(dir string, hash string) {
 
 func encrypt(data []byte, hash string) []byte {
 	block, _ := aes.NewCipher([]byte(hash))
+
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		log.Fatalln(err)
 	}
+
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
+
 	return ciphertext
 }
 
@@ -108,7 +112,12 @@ func encryptFile(filename string, data []byte, hash string) {
 		log.Fatalln(err)
 	}
 	defer f.Close()
-	f.Write(encrypt(data, hash))
+
+	_, err = f.Write(encrypt(data, hash))
+	if err != nil {
+		log.Println(err)
+		return
+	}
 }
 
 func isDir(name string) bool {
@@ -116,13 +125,13 @@ func isDir(name string) bool {
 
 	file, err := os.Open(name)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	defer file.Close()
 
 	fi, err := file.Stat()
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	if fi.IsDir() {
@@ -130,11 +139,12 @@ func isDir(name string) bool {
 	} else {
 		stat = false
 	}
+
 	return stat
 }
 
 func decryptFileSave(hash, dir string) {
-	tmp, err := os.OpenFile("./decrypt.go", os.O_WRONLY|os.O_CREATE, 0600)
+	tmp, err := os.OpenFile("./decrypt.go", os.O_WRONLY|os.O_CREATE, 0o600)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -221,7 +231,12 @@ func decryptFile(filename string, hash string) {
 }`, `"`+hash+`"`, `"`+dir+`"`)
 
 	log.Printf("Save decrypt file >> %v\n", tmp.Name())
-	tmp.WriteString(saveFile)
+
+	_, err = tmp.WriteString(saveFile)
+	if err != nil {
+		log.Println(err)
+	}
+
 	tmp.Close()
 }
 

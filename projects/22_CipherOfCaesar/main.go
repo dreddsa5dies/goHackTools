@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -15,7 +16,10 @@ var opts struct {
 }
 
 func main() {
-	flags.Parse(&opts)
+	_, err := flags.Parse(&opts)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	if len(os.Args) == 1 {
 		fmt.Fprintf(os.Stdout, "Usage:\t%v -h\n", os.Args[0])
@@ -37,6 +41,7 @@ func encrypt(data string, key int) string {
 	result := strings.Map(func(r rune) rune {
 		return caesar(r, -key)
 	}, data)
+
 	return result
 }
 
@@ -44,6 +49,7 @@ func decrypt(data string, key int) string {
 	result := strings.Map(func(r rune) rune {
 		return caesar(r, +key)
 	}, data)
+
 	return result
 }
 
@@ -54,5 +60,6 @@ func caesar(r rune, shift int) rune {
 	} else if s < 'a' {
 		return rune(s + 26)
 	}
+
 	return rune(s)
 }
