@@ -20,7 +20,10 @@ var opts struct {
 }
 
 func main() {
-	flags.Parse(&opts)
+	_, err := flags.Parse(&opts)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	if len(os.Args) == 1 {
 		fmt.Fprintf(os.Stdout, "Usage:\t%v -h\n", os.Args[0])
@@ -29,7 +32,7 @@ func main() {
 
 	log.Println("Start")
 
-	_, err := url.ParseRequestURI(opts.Input)
+	_, err = url.ParseRequestURI(opts.Input)
 	if err != nil {
 		fmt.Fprintf(os.Stdout, "Usage:\t%v -h\n", os.Args[0])
 		log.Fatalln(err)
@@ -46,28 +49,36 @@ func main() {
 			fmt.Printf("%s: %s\n", input, c)
 		}
 	}
+
 	log.Println("End")
+
 	os.Exit(0)
 }
 
 func doReq(location string, timeout int) []string {
 	cookies := []string{}
-	req, err := http.NewRequest("GET", location, nil)
+
+	req, err := http.NewRequest("GET", location, http.NoBody)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	tr := &http.Transport{
 		Dial: func(network, addr string) (net.Conn, error) {
 			return net.DialTimeout(network, addr, time.Duration(timeout)*time.Millisecond)
 		},
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // так надо
 	}
+
 	res, err := tr.RoundTrip(req)
 	if err != nil {
 		return cookies
 	}
+	defer res.Body.Close()
+
 	for _, c := range res.Cookies() {
 		cookies = append(cookies, c.Raw)
 	}
+
 	return cookies
 }
