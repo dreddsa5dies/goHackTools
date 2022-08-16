@@ -1,12 +1,16 @@
-/*cookie-flags takes a url and returns the cookie set.*/
+/*
+API not work today, so sorry
+cookie-flags takes a url and returns the cookie set.
+*/
 package main
 
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -32,10 +36,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	regMac, err := regexp.Compile(`([([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})`)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	regMac := regexp.MustCompile(`([([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})`)
 
 	for k := 1; k < len(os.Args); k++ {
 		if !regMac.MatchString(os.Args[k]) {
@@ -43,36 +44,48 @@ func main() {
 			continue
 		}
 
-		macAdress := macFormat(os.Args[k])
-
-		url := fmt.Sprintf(`http://mobile.maps.yandex.net/cellid_location/?clid=1866854&lac=-1&cellid=-1&operatorid=null&countrycode=null&signalstrength=-1&wifinetworks=%s:-65&app=ymetro`, macAdress)
-
-		resp, err := http.Get(url)
+		data, err := getLocation(macFormat(os.Args[k]))
 		if err != nil {
-			log.Fatalf("http.Get: %s", err)
-		}
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalf("ioutil.ReadAll: %s", err)
-		}
-
-		data := location{}
-		err = xml.Unmarshal(body, &data)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s not found\n", os.Args[k])
+			log.Println(err)
 			continue
 		}
 
 		fmt.Println(os.Args[k], data.Location.Longitude, data.Location.Latitude)
 	}
-	os.Exit(0)
 }
 
 func macFormat(mac string) string {
 	mac = strings.ToLower(mac)
-	mac = strings.Replace(mac, ":", "", -1)
-	mac = strings.Replace(mac, "-", "", -1)
+	mac = strings.ReplaceAll(mac, ":", "")
+	mac = strings.ReplaceAll(mac, "-", "")
+
 	return mac
+}
+
+func getLocation(mac string) (*location, error) {
+	params := url.Values{}
+
+	params.Set("wifinetworks", mac+":-65")
+
+	urlPath := "http://mobile.maps.yandex.net/cellid_location/?" + params.Encode()
+
+	resp, err := http.Get(urlPath) //nolint:gosec // так надо
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	data := location{}
+
+	err = xml.Unmarshal(body, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
 }
