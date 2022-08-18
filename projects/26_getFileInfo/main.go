@@ -12,7 +12,6 @@ var (
 )
 
 func main() {
-
 	if len(os.Args) == 1 {
 		fmt.Fprintf(os.Stdout, "Using: %s file\n", os.Args[0])
 		os.Exit(1)

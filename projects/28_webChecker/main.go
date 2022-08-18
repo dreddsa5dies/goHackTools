@@ -27,7 +27,8 @@ func main() {
 
 	// write to .log file
 	pwdDir, _ := os.Getwd()
-	fLog, err := os.OpenFile(pwdDir+`/`+u.Hostname()+`.log`, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
+
+	fLog, err := os.OpenFile(pwdDir+`/`+u.Hostname()+`.log`, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o640)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -38,15 +39,15 @@ func main() {
 	for {
 		resp, err := http.Get(u.String())
 		if err != nil {
-			log.Printf("Error connection %s\n", err)
-			return
+			log.Printf("error connection %s\n", err)
 		}
 
-		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
-			log.Printf("Error. %s http-status: %d\n", u.String(), resp.StatusCode)
-			return
+			log.Printf("%s http-status: %d\n", u.String(), resp.StatusCode)
+			continue
 		}
+
+		resp.Body.Close()
 
 		log.Printf("Online. %s http-status: %d\n", u.String(), resp.StatusCode)
 
