@@ -33,28 +33,35 @@ func main() {
 		log.Fatal(err)
 	}
 	defer firstFile.Close()
+
 	// Second file
 	secondFile, err := os.Open(fileZip)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 	defer secondFile.Close()
 
 	// New file for output
 	newFile, err := os.Create("stego_image.jpg")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 	defer newFile.Close()
 
 	// Copy the bytes to destination from source_, err = io.Copy(newFile, firstFile)
 	_, err = io.Copy(newFile, firstFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
+
 	_, err = io.Copy(newFile, secondFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
+
 	log.Println("OK")
 }

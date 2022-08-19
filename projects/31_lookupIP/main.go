@@ -14,18 +14,22 @@ func main() {
 	}
 
 	arg := os.Args[1]
+
 	// Parse the IP for validation
 	ip := net.ParseIP(arg)
 	if ip == nil {
 		log.Fatal("Valid IP not detected. Value provided: " + arg)
 	}
+
 	fmt.Print(arg + "\t")
+
 	hostnames, err := net.LookupAddr(ip.String())
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, hostnames := range hostnames {
-		fmt.Print(hostnames)
+
+	for i := range hostnames {
+		fmt.Print(hostnames[i])
 	}
 }
 
