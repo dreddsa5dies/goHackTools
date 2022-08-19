@@ -16,7 +16,7 @@ import (
 func usage(name string) {
 	fmt.Fprintf(os.Stdout, "Usage:\t%v file.jpg\n", name)
 	fmt.Printf("Detecting a ZIP archive in a JPEG image\n")
-	fmt.Printf("For unarchiving you need 7z\n")
+	fmt.Printf("For unarchive you need 7z\n")
 	os.Exit(1)
 }
 
@@ -37,8 +37,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	bufferedReader := bufio.NewReader(file)
 	fileStat, _ := file.Stat()
+
 	// 0 is being cast to an int64 to force i to be initialized as
 	// int64 because filestat.Size() returns an int64 and must be
 	// compared against the same type
@@ -47,14 +49,18 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		if myByte == '\x50' {
 			// First byte match. Check the next 3 bytes
-			byteSlice := make([]byte, 3)
+			var byteSlice []byte
+
 			// Get bytes without advancing pointer with Peek
 			byteSlice, err = bufferedReader.Peek(3)
+
 			if err != nil {
 				log.Fatal(err)
 			}
+
 			if bytes.Equal(byteSlice, []byte{'\x4b', '\x03', '\x04'}) {
 				log.Printf("Found zip signature at byte %d.", i)
 			}
@@ -64,12 +70,15 @@ func main() {
 	// Unzip it
 	for {
 		var unz string
+
 		fmt.Print("Unzip it? (Y/N) > ")
+
 		_, err := fmt.Scanf("%s", &unz)
 		if err != nil {
 			fmt.Println("Wrong data")
 			continue
 		}
+
 		switch {
 		case unz == "Y":
 			fmt.Println("OK")
@@ -94,10 +103,10 @@ func main() {
 			fmt.Println("OK")
 			fmt.Println("Exit")
 			os.Exit(0)
+
 		default:
 			fmt.Println("Wrong data")
 			continue
 		}
 	}
-
 }
