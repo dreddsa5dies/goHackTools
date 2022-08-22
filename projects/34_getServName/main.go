@@ -16,12 +16,14 @@ func main() {
 	}
 
 	arg := os.Args[1]
+
 	nameservers, err := net.LookupNS(arg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, nameserver := range nameservers {
-		fmt.Println(nameserver.Host)
+
+	for i := range nameservers {
+		fmt.Println(nameservers[i].Host)
 	}
 }
 
