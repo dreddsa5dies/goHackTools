@@ -15,12 +15,14 @@ func main() {
 	}
 
 	arg := os.Args[1]
+
 	mxRecords, err := net.LookupMX(arg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, mxRecord := range mxRecords {
-		fmt.Printf("Host: %s\tPreference: %d\n", mxRecord.Host, mxRecord.Pref)
+
+	for i := range mxRecords {
+		fmt.Printf("Host: %s\tPreference: %d\n", mxRecords[i].Host, mxRecords[i].Pref)
 	}
 }
 
