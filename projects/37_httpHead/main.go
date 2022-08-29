@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 )
 
@@ -14,13 +15,19 @@ func main() {
 		usage(os.Args[0])
 	}
 
-	url := os.Args[1]
+	urlArg := os.Args[1]
 
-	// Perform HTTP HEAD
-	response, err := http.Head(url)
+	u, err := url.ParseRequestURI(urlArg)
 	if err != nil {
-		log.Fatal("Error fetching URL. ", err)
+		log.Fatal("error check URL. ", err)
 	}
+
+	response, err := http.Head(u.String())
+	if err != nil {
+		log.Println("error fetching URL. ", err)
+		return
+	}
+	defer response.Body.Close()
 
 	// Print out each header key and value pair
 	for key, value := range response.Header {
