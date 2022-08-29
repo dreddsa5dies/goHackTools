@@ -3,9 +3,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 )
@@ -15,24 +16,34 @@ func main() {
 		usage(os.Args[0])
 	}
 
-	url := os.Args[1]
-	response, err := http.Get(url)
+	urlArg := os.Args[1]
+
+	u, err := url.ParseRequestURI(urlArg)
 	if err != nil {
-		log.Fatal("Error fetching URL. ", err)
+		log.Fatal("error check URL. ", err)
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	response, err := http.Get(u.String())
 	if err != nil {
-		log.Fatal("Error reading HTTP body. ", err)
+		log.Println("error fetching URL. ", err)
+		return
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Println("error reading HTTP body. ", err)
+		return
 	}
 
-	// Look for HTML comments using a regular expressionre := regexp.MustCompile("<!--(.|\n)*?-->")
+	// Look for HTML comments using a regular expressions := regexp.MustCompile("<!--(.|\n)*?-->")
 	re := regexp.MustCompile("<!--(.|\n)*?-->")
+
 	matches := re.FindAllString(string(body), -1)
 	if matches == nil {
 		// Clean exit if no matches found
 		fmt.Println("No HTML comments found.")
-		os.Exit(0)
+		return
 	}
 
 	// Print all HTML comments found
