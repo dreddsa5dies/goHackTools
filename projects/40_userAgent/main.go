@@ -5,12 +5,14 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
 	// Create the request for use later
 	client := &http.Client{}
-	request, err := http.NewRequest("GET", "https://www.whoishostingthis.com/tools/user-agent/", nil)
+
+	request, err := http.NewRequest("GET", "https://www.whoishostingthis.com/tools/user-agent/", http.NoBody)
 	if err != nil {
 		log.Fatal("Error creating request. ", err)
 	}
@@ -18,8 +20,12 @@ func main() {
 	// Override the user agent
 	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36")
 
-	_, err = client.Do(request)
+	res, err := client.Do(request)
 	if err != nil {
 		log.Fatal("Error making request. ", err)
 	}
+
+	res.Body.Close()
+
+	os.Exit(0)
 }

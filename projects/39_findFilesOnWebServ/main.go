@@ -1,4 +1,4 @@
-// Finding unlisted files on a webserver
+// Finding unlisted files on a web server
 package main
 
 import (
@@ -24,6 +24,7 @@ func main() {
 
 	wordlistFilename := os.Args[1]
 	baseURL := os.Args[2]
+
 	maxThreads, err := strconv.Atoi(os.Args[3])
 	if err != nil {
 		log.Fatal("Error converting maxThread value to integer. ", err)
@@ -83,6 +84,7 @@ func checkIfURLExists(baseURL, filePath string, doneChannel chan bool) {
 	if err != nil {
 		log.Println("Error fetching ", targetURL.String())
 	}
+	defer response.Body.Close()
 
 	// If server returns 200 OK file can be downloaded
 	if response.StatusCode == 200 {
