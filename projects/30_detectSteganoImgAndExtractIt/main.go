@@ -32,14 +32,22 @@ func main() {
 		usage(os.Args[0])
 	}
 
+	work(fileJpg)
+}
+
+func work(filename string) {
 	// Zip signature is "\x50\x4b\x03\x04"
-	file, err := os.Open(fileJpg)
+	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	bufferedReader := bufio.NewReader(file)
-	fileStat, _ := file.Stat()
+
+	fileStat, err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// 0 is being cast to an int64 to force i to be initialized as
 	// int64 because filestat.Size() returns an int64 and must be
@@ -56,7 +64,6 @@ func main() {
 
 			// Get bytes without advancing pointer with Peek
 			byteSlice, err = bufferedReader.Peek(3)
-
 			if err != nil {
 				log.Fatal(err)
 			}

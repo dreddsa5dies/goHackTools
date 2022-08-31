@@ -42,7 +42,12 @@ func grabBanner(ip string, port int, doneChannel chan bool) {
 
 	// See if server offers anything to read
 	buffer := make([]byte, 4096)
-	connection.SetReadDeadline(time.Now().Add(time.Second * 5))
+
+	err = connection.SetReadDeadline(time.Now().Add(time.Second * 5))
+	if err != nil {
+		doneChannel <- true
+		return
+	}
 
 	// Set timeout
 	numBytesRead, err := connection.Read(buffer)
