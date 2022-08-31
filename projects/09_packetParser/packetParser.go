@@ -14,17 +14,17 @@ import (
 )
 
 var (
-	device       string = "wls1"
-	snapshot_len int32  = 1024
-	promiscuous  bool   = false
-	err          error
-	timeout      time.Duration = 30 * time.Second
-	handle       *pcap.Handle
+	device      string = "wls1"
+	snapshotLen int32  = 1024
+	promiscuous bool   = false
+	err         error
+	timeout     time.Duration = 30 * time.Second
+	handle      *pcap.Handle
 )
 
 func main() {
 	// открытие интерфейса
-	handle, err = pcap.OpenLive(device, snapshot_len, promiscuous, timeout)
+	handle, err = pcap.OpenLive(device, snapshotLen, promiscuous, timeout)
 	if err != nil {
 		log.Fatal(err)
 	}

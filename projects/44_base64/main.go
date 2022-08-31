@@ -25,6 +25,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error decoding data. ", err)
 		}
+
 		fmt.Printf("%s\n", decodedData)
 	default:
 		usage(os.Args[0])
@@ -32,7 +33,7 @@ func main() {
 }
 
 func usage(name string) {
-	fmt.Fprintf(os.Stderr, "Using: %s encode DATA\n", name)
-	fmt.Fprintf(os.Stderr, "OR %s decode DATA\n", name)
+	fmt.Fprintf(os.Stdout, "Using: %s encode DATA\n", name)
+	fmt.Fprintf(os.Stdout, "OR %s decode DATA\n", name)
 	os.Exit(1)
 }

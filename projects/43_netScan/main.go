@@ -12,8 +12,8 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Using: %s ip-addr\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "First three octets. Ex: 192.168.0\n")
+		fmt.Fprintf(os.Stdout, "Using: %s ip-addr\n", os.Args[0])
+		fmt.Fprintf(os.Stdout, "First three octets. Ex: 192.168.0\n")
 		os.Exit(1)
 	}
 

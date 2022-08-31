@@ -58,7 +58,7 @@ func main() {
 	}
 
 	// все IP
-	for k := range allIP {
+	for k := range allIP { //nolint:golint // need only IP
 		kml, err := recKml(k)
 		if err != nil {
 			log.Fatal(err)
