@@ -24,14 +24,15 @@ func main() {
 	// Convert the mode value from string to uin32 to os.FileMode
 	fileModeValue, err := strconv.ParseUint(mode, 8, 32)
 	if err != nil {
-		log.Fatal("Error converting permission string to octal value. ",
+		log.Fatal("error converting permission string to octal value. ",
 			err)
 	}
 
 	fileMode := os.FileMode(fileModeValue)
+
 	err = os.Chmod(filePath, fileMode)
 	if err != nil {
-		log.Fatal("Error changing permissions. ", err)
+		log.Fatal("error changing permissions. ", err)
 	}
 
 	fmt.Println("Permissions changed for " + filePath)

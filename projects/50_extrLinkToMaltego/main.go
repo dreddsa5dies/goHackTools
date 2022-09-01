@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -21,12 +22,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	url := os.Args[1]
+	URL, err := url.Parse(os.Args[1])
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// response url
-	resp, err := http.Get(url)
+	resp, err := http.Get(URL.String())
 	if err != nil {
-		log.Fatalf("Ошибка запроса %v", err)
+		log.Fatalf("error get %v", err)
 	}
 	// отложенное закрытие коннекта
 	defer resp.Body.Close()
@@ -48,14 +52,6 @@ func main() {
 		case strings.HasPrefix(link, "https"):
 			fmt.Println("<Entity Type=\"maltego.Domain\">")
 			fmt.Println("<Value>" + link + "</Value>")
-		case strings.HasPrefix(link, "https"):
-			// If the first character is a / , which indicates that the link is a relative link, then we’ll output it to
-			// the correct format after we have prepended the target URL to the link. While this recipe shows
-			// how to deal with one example of a relative link, it is important to note that there are other
-			// types of relative links, such as just a filename (example.php), a directory, and also a relative
-			// path dot notation (../../example.php), as shown here:
-			fmt.Println("<Entity Type=\"maltego.Domain\">")
-			fmt.Println("<Value>" + url + link + "</Value>")
 		}
 	}
 

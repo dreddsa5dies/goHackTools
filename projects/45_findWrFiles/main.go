@@ -31,8 +31,8 @@ func checkFilePermissions(path string, fileInfo os.FileInfo, err error) error {
 	}
 
 	// Bitwise operators to isolate specific bit groups
-	maskedPermissions := fileInfo.Mode().Perm() & 0002
-	if maskedPermissions == 0002 {
+	maskedPermissions := fileInfo.Mode().Perm() & 0o002
+	if maskedPermissions == 0o002 {
 		fmt.Println(fileInfo.Mode().Perm().String() + " " + path)
 	}
 

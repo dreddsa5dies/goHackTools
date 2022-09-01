@@ -19,6 +19,7 @@ func main() {
 	futureTime := time.Now().Add(50 * time.Hour).Add(15 * time.Minute)
 	lastAccessTime := futureTime
 	lastModifyTime := futureTime
+
 	err := os.Chtimes(os.Args[1], lastAccessTime, lastModifyTime)
 	if err != nil {
 		log.Println(err)
