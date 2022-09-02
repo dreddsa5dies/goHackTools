@@ -3,10 +3,9 @@
 package main
 
 import (
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // it's need
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,11 +29,12 @@ func main() {
 	}
 
 	// tests user-agents
-	userAgents := make(map[string]string)
-	userAgents["Chrome on Windows 8.1"] = "Mozilla/5.0 (Windows NT6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36"
-	userAgents["Safari on iOS"] = "Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B466 Safari/600.1.4"
-	userAgents["IE6 on Windows XP"] = "Mozilla/5.0 (Windows; U; MSIE 6.0; WindowsNT 5.1; SV1; .NET CLR 2.0.50727)"
-	userAgents["Googlebot"] = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+	userAgents := map[string]string{
+		`Chrome on Windows 8.1`: `Mozilla/5.0 (Windows NT6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.,2214.115 Safari/537.36`,
+		`Safari on iOS`:         `Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like ,Gecko) Version/8.0 Mobile/12B466 Safari/600.1.4`,
+		`IE6 on Windows XP`:     `Mozilla/5.0 (Windows; U; MSIE 6.0; WindowsNT 5.1; SV1; .NET CLR 2.0.50727)`,
+		`Googlebot`:             `Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)`,
+	}
 
 	// save requests from user-agents
 	resultReq := make(map[string]string)
@@ -73,7 +73,7 @@ func main() {
 func doReq(inputURL, userAgent string) string {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", inputURL, nil)
+	req, err := http.NewRequest("GET", inputURL, http.NoBody)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -84,12 +84,12 @@ func doReq(inputURL, userAgent string) string {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return ""
 	}
 
 	return string(body)
@@ -97,7 +97,13 @@ func doReq(inputURL, userAgent string) string {
 
 // get md5 hash
 func md5EmptyHash(message string) string {
-	h := md5.New()
-	io.WriteString(h, message)
+	h := md5.New() //nolint:gosec // it's need
+
+	_, err := io.WriteString(h, message)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
