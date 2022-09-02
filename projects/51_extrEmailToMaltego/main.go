@@ -4,9 +4,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 )
@@ -20,23 +21,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	url := os.Args[1]
+	URL, err := url.Parse(os.Args[1])
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// response url
-	resp, err := http.Get(url)
+	resp, err := http.Get(URL.String())
 	if err != nil {
-		log.Fatalf("Ошибка запроса %v", err)
+		log.Fatalln(err)
 	}
 	defer resp.Body.Close()
 
 	// write body to []byte
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Ошибка записи ответа %v", err)
+		log.Println(err)
+		return
 	}
 
 	// create email regexp
-	regMail, _ := regexp.Compile(`[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}`)
+	regMail := regexp.MustCompile(`[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}`)
 
 	// variable to emails
 	var mailAddr []string
