@@ -3,10 +3,22 @@ package shodan
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
 )
+
+// BaseURL - ...
+const BaseURL = "https://api.shodan.io"
+
+// Client - ...
+type Client struct {
+	apiKey string
+}
+
+// New - ...
+func New(apiKey string) *Client {
+	return &Client{apiKey: apiKey}
+}
 
 // APIInfo - information of you account status
 type APIInfo struct {
@@ -26,13 +38,13 @@ func (s *Client) APIInfo() (*APIInfo, error) {
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
-
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var ret APIInfo
+
 	err = json.Unmarshal(body, &ret)
 	if err != nil {
 		return nil, err

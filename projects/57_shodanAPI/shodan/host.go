@@ -3,8 +3,7 @@ package shodan
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
 )
 
@@ -45,21 +44,19 @@ type HostSearch struct {
 
 // HostSearch - get API information
 func (s *Client) HostSearch(q string) (*HostSearch, error) {
-	res, err := http.Get(
-		fmt.Sprintf("%s/shodan/host/search?key=%s&query=%s", BaseURL, s.apiKey, q),
-	)
+	res, err := http.Get(fmt.Sprintf("%s/shodan/host/search?key=%s&query=%s", BaseURL, s.apiKey, q))
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
-
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var ret HostSearch
+
 	err = json.Unmarshal(body, &ret)
 	if err != nil {
 		return nil, err
