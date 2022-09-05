@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"sort"
@@ -16,13 +17,20 @@ func main() {
 	}
 
 	s := spinner.New(spinner.CharSets[36], 100*time.Millisecond) // Build our new spinner
-	s.Color("red")
+
+	err := s.Color("red")
+	if err != nil {
+		log.Println(err)
+	}
+
 	target := os.Args[1]
 	ports := make(chan int, 100)
 	results := make(chan int)
 
 	s.Start()
+
 	var openports []int
+
 	for i := 0; i < cap(ports); i++ {
 		go worker(ports, results, target)
 	}
@@ -45,9 +53,11 @@ func main() {
 
 	sort.Ints(openports)
 	fmt.Println()
+
 	for _, port := range openports {
 		fmt.Printf("%d open\n", port)
 	}
+
 	s.Stop()
 }
 
@@ -55,10 +65,12 @@ func worker(ports, results chan int, target string) {
 	for p := range ports {
 		address := fmt.Sprintf(target+":%d", p)
 		conn, err := net.DialTimeout("tcp", address, 10*time.Second)
+
 		if err != nil {
 			results <- 0
 			continue
 		}
+
 		conn.Close()
 		results <- p
 	}
@@ -67,5 +79,6 @@ func worker(ports, results chan int, target string) {
 func usage(name string) {
 	fmt.Fprintf(os.Stdout, "Usage:\t%v scanme.nmap.org\n", name)
 	fmt.Printf("Scanning scanme.nmap.org\n")
+
 	os.Exit(1)
 }
