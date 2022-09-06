@@ -23,6 +23,7 @@ func walkFn(path string, f os.FileInfo, err error) error {
 			fmt.Printf("[+] HIT: %s\n", path)
 		}
 	}
+
 	return nil
 }
 

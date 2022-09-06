@@ -50,6 +50,7 @@ func capture(iface, target string) {
 		if networkLayer == nil {
 			continue
 		}
+
 		transportLayer := packet.TransportLayer()
 		if transportLayer == nil {
 			continue
@@ -66,7 +67,6 @@ func capture(iface, target string) {
 }
 
 func main() {
-
 	if len(os.Args) != 4 {
 		log.Fatalln("Usage: sudo ./62_synFlood <capture_iface> <target_ip> <port1,port2,port3>")
 	}
@@ -82,6 +82,7 @@ func main() {
 			devFound = true
 		}
 	}
+
 	if !devFound {
 		log.Panicf("Device named '%s' does not exist\n", iface)
 	}
