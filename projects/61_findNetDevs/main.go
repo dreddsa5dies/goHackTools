@@ -9,6 +9,7 @@ import (
 
 func main() {
 	devices, err := pcap.FindAllDevs()
+
 	if err != nil {
 		log.Panicln(err)
 	}
