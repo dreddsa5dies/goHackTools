@@ -85,6 +85,25 @@
 
 </details>
 
+## [SCC](https://github.com/boyter/scc)
+```
+───────────────────────────────────────────────────────────────────────────────
+Language                 Files     Lines   Blanks  Comments     Code Complexity
+───────────────────────────────────────────────────────────────────────────────
+Go                          65      4758      878       269     3611        888
+Plain Text                   9     21110        0         0    21110          0
+Markdown                     2        20        3         0       17          0
+───────────────────────────────────────────────────────────────────────────────
+Total                       76     25888      881       269    24738        888
+───────────────────────────────────────────────────────────────────────────────
+Estimated Cost to Develop (organic) $784,563
+Estimated Schedule Effort (organic) 12.54 months
+Estimated People Required (organic) 5.56
+───────────────────────────────────────────────────────────────────────────────
+Processed 262599 bytes, 0.263 megabytes (SI)
+───────────────────────────────────────────────────────────────────────────────
+```
+
 ## Thank you
 Thanks to all authors of amazing books on information security
 
