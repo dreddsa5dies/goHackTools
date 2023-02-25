@@ -21,7 +21,7 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/shavac/gexpect v0.0.0-20180514151559-ecdc92667239
 	github.com/tkrajina/gpxgo v1.0.1 // indirect
-	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
+	golang.org/x/crypto v0.1.0
 	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52 // indirect
 	rsc.io/pdf v0.1.1
 	shodan v0.0.0-00010101000000-000000000000

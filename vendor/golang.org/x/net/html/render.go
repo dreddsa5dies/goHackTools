@@ -85,7 +85,7 @@ func render1(w writer, n *Node) error {
 		if _, err := w.WriteString("<!--"); err != nil {
 			return err
 		}
-		if _, err := w.WriteString(n.Data); err != nil {
+		if err := escape(w, n.Data); err != nil {
 			return err
 		}
 		if _, err := w.WriteString("-->"); err != nil {
@@ -96,7 +96,7 @@ func render1(w writer, n *Node) error {
 		if _, err := w.WriteString("<!DOCTYPE "); err != nil {
 			return err
 		}
-		if _, err := w.WriteString(n.Data); err != nil {
+		if err := escape(w, n.Data); err != nil {
 			return err
 		}
 		if n.Attr != nil {
@@ -134,6 +134,9 @@ func render1(w writer, n *Node) error {
 			}
 		}
 		return w.WriteByte('>')
+	case RawNode:
+		_, err := w.WriteString(n.Data)
+		return err
 	default:
 		return errors.New("html: unknown node type")
 	}
@@ -252,20 +255,19 @@ func writeQuoted(w writer, s string) error {
 // Section 12.1.2, "Elements", gives this list of void elements. Void elements
 // are those that can't have any contents.
 var voidElements = map[string]bool{
-	"area":    true,
-	"base":    true,
-	"br":      true,
-	"col":     true,
-	"command": true,
-	"embed":   true,
-	"hr":      true,
-	"img":     true,
-	"input":   true,
-	"keygen":  true,
-	"link":    true,
-	"meta":    true,
-	"param":   true,
-	"source":  true,
-	"track":   true,
-	"wbr":     true,
+	"area":   true,
+	"base":   true,
+	"br":     true,
+	"col":    true,
+	"embed":  true,
+	"hr":     true,
+	"img":    true,
+	"input":  true,
+	"keygen": true, // "keygen" has been removed from the spec, but are kept here for backwards compatibility.
+	"link":   true,
+	"meta":   true,
+	"param":  true,
+	"source": true,
+	"track":  true,
+	"wbr":    true,
 }
