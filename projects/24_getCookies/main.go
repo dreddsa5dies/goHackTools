@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"flag"
 	"fmt"
@@ -41,7 +42,7 @@ func main() {
 	input := opts.Input
 	timeout := flag.Int("timeout", 1000, "timeout for requests")
 
-	cookies := doReq(input, *timeout)
+	cookies := doReq(context.Background(), input, *timeout)
 	if len(cookies) == 0 {
 		log.Println("Not cookies")
 	} else {
@@ -55,10 +56,8 @@ func main() {
 	os.Exit(0)
 }
 
-func doReq(location string, timeout int) []string {
-	cookies := []string{}
-
-	req, err := http.NewRequest("GET", location, http.NoBody)
+func doReq(ctx context.Context, location string, timeout int) []string {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, http.NoBody)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -72,10 +71,11 @@ func doReq(location string, timeout int) []string {
 
 	res, err := tr.RoundTrip(req)
 	if err != nil {
-		return cookies
+		return nil
 	}
 	defer res.Body.Close()
 
+	cookies := make([]string, 0, len(res.Cookies()))
 	for _, c := range res.Cookies() {
 		cookies = append(cookies, c.Raw)
 	}
