@@ -4,14 +4,11 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-
-	"os"
-
 	"log"
-
+	"os"
 	"strings"
 
-	crypt "github.com/amoghe/go-crypt"
+	"github.com/amoghe/go-crypt"
 )
 
 var (
@@ -54,7 +51,7 @@ func main() {
 	scanner := bufio.NewScanner(passFile)
 	for scanner.Scan() {
 		j := scanner.Text()
-		// строки с логин/пароль
+		// строки с логином и паролем
 		if strings.Contains(j, ":") {
 			shadowText := strings.Split(j, ":")
 			user, cryptPass := shadowText[0], shadowText[1]
