@@ -12,35 +12,34 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
-var (
-	snaplen = int32(320)
-	promisc = true
-	timeout = pcap.BlockForever
-	/**
-	TCP Flags and Their Byte Positions
-	Bit 7 6 5 4 3 2 1 0
-	Flag CWR ECE URG ACK PSH RST SYN FIN
+func capture(iface, target string, results map[string]int) {
+	var (
+		snaplen = int32(320)
+		timeout = pcap.BlockForever
+		/**
+		TCP Flags and Their Byte Positions
+		Bit 7 6 5 4 3 2 1 0
+		Flag CWR ECE URG ACK PSH RST SYN FIN
 
-	ACK and FIN: 00010001 (0x11)
-	ACK: 00010000 (0x10)
-	ACK and PSH: 00011000 (0x18)
+		ACK and FIN: 00010001 (0x11)
+		ACK: 00010000 (0x10)
+		ACK and PSH: 00011000 (0x18)
 
-	tcp[13] == 0x11 or tcp[13] == 0x10 or tcp[13] == 0x18
-	**/
-	filter   = "tcp[13] == 0x11 or tcp[13] == 0x10 or tcp[13] == 0x18"
-	devFound = false
-	results  = make(map[string]int)
-)
+		tcp[13] == 0x11 or tcp[13] == 0x10 or tcp[13] == 0x18
+		**/
+		filter = "tcp[13] == 0x11 or tcp[13] == 0x10 or tcp[13] == 0x18"
+	)
 
-func capture(iface, target string) {
-	handle, err := pcap.OpenLive(iface, snaplen, promisc, timeout)
+	handle, err := pcap.OpenLive(iface, snaplen, true, timeout)
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return
 	}
 	defer handle.Close()
 
 	if err := handle.SetBPFFilter(filter); err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return
 	}
 
 	source := gopacket.NewPacketSource(handle, handle.LinkType())
@@ -68,7 +67,8 @@ func capture(iface, target string) {
 
 func main() {
 	if len(os.Args) != 4 {
-		log.Fatalln("Usage: sudo ./62_synFlood <capture_iface> <target_ip> <port1,port2,port3>")
+		fmt.Println("Usage: sudo ./main <capture_iface> <target_ip> <port1,port2,port3>")
+		os.Exit(1)
 	}
 
 	devices, err := pcap.FindAllDevs()
@@ -76,27 +76,27 @@ func main() {
 		log.Panicln(err)
 	}
 
+	var devFound bool
 	iface := os.Args[1]
 	for _, device := range devices {
 		if device.Name == iface {
 			devFound = true
+			break
 		}
 	}
 
 	if !devFound {
-		log.Panicf("Device named '%s' does not exist\n", iface)
+		log.Printf("device named '%s' does not exist", iface)
+		return
 	}
 
 	ip := os.Args[2]
-	go capture(iface, ip)
-	time.Sleep(1 * time.Second)
+	results := make(map[string]int, 0)
+	go capture(iface, ip, results)
 
-	ports, err := explode(os.Args[3])
-	if err != nil {
-		log.Panicln(err)
-	}
+	<-time.After(1 * time.Second)
 
-	for _, port := range ports {
+	for _, port := range explode(os.Args[3]) {
 		target := fmt.Sprintf("%s:%s", ip, port)
 		fmt.Println("Trying", target)
 		c, err := net.DialTimeout("tcp", target, 1000*time.Millisecond)
@@ -105,7 +105,7 @@ func main() {
 		}
 		c.Close()
 	}
-	time.Sleep(2 * time.Second)
+	<-time.After(2 * time.Second)
 
 	for port, confidence := range results {
 		if confidence >= 1 {
@@ -114,14 +114,14 @@ func main() {
 	}
 }
 
-func explode(portString string) ([]string, error) {
+func explode(portString string) []string {
 	ret := make([]string, 0)
 
 	ports := strings.Split(portString, ",")
 	for _, port := range ports {
-		port := strings.TrimSpace(port)
+		port = strings.TrimSpace(port)
 		ret = append(ret, port)
 	}
 
-	return ret, nil
+	return ret
 }
