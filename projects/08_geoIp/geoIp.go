@@ -17,28 +17,23 @@ func main() {
 		"35.184.160.12",
 	}
 
+	db, err := getDb()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
 	for i := range tmp {
-		if err := printRecord(tmp[i]); err != nil {
+		if err = printRecord(tmp[i], db); err != nil {
 			log.Println(err)
 		}
 	}
 }
 
-func printRecord(tgt string) error {
+func printRecord(tgt string, db *geoip2.Reader) error {
 	if tgt == "" {
 		return errors.New("error IP")
 	}
-
-	absPath, err := filepath.Abs("GeoLite2-City.mmdb")
-	if err != nil {
-		return err
-	}
-
-	db, err := geoip2.Open(absPath)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
 
 	ip := net.ParseIP(tgt)
 
@@ -54,4 +49,17 @@ func printRecord(tgt string) error {
 	fmt.Printf("[+] Coordinates: %v, %v\n", record.Location.Latitude, record.Location.Longitude)
 
 	return nil
+}
+
+func getDb() (*geoip2.Reader, error) {
+	absPath, err := filepath.Abs("GeoLite2-City.mmdb")
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := geoip2.Open(absPath)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }
