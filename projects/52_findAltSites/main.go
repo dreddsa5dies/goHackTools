@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"crypto/md5" //nolint:gosec // it's need
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 func main() {
@@ -37,11 +39,16 @@ func main() {
 	}
 
 	// save requests from user-agents
-	resultReq := make(map[string]string)
+	resultReq := make(map[string]string, len(userAgents))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// iterate
 	for k, v := range userAgents {
-		resultReq[k] = doReq(inputURL, v)
+		ctxReq, cancelReq := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		resultReq[k] = doReqCtx(ctxReq, inputURL, v)
+		cancelReq()
 	}
 
 	// 	The next part of the code creates an md5s array and then iterates through the responses,
@@ -69,11 +76,11 @@ func main() {
 	os.Exit(0)
 }
 
-// doReq - get body request
-func doReq(inputURL, userAgent string) string {
+// doReqCtx - get body request
+func doReqCtx(ctx context.Context, inputURL, userAgent string) string {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", inputURL, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, inputURL, http.NoBody)
 	if err != nil {
 		log.Fatalln(err)
 	}
